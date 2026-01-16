@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ryanair AMC Phase 1 Mastery</title>
+    <style>
+        :root { --ry-blue: #003399; --ry-yellow: #f1c40f; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 2rem auto; padding: 1rem; background: var(--bg); color: #333; }
+        .quiz-container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 8px solid var(--ry-blue); }
+        .header-box { text-align: center; margin-bottom: 2rem; }
+        .progress-bar { height: 10px; background: #eee; border-radius: 5px; margin: 10px 0; overflow: hidden; }
+        #progress-fill { height: 100%; background: var(--ry-blue); width: 0%; transition: 0.3s; }
+        .question-text { font-size: 1.3rem; font-weight: bold; margin-bottom: 1.5rem; display: block; }
+        .option { display: flex; align-items: center; padding: 12px; border: 2px solid #eee; border-radius: 8px; cursor: pointer; margin-bottom: 10px; transition: 0.2s; }
+        .option:hover { border-color: var(--ry-blue); background: #f0f7ff; }
+        .option input { margin-right: 15px; transform: scale(1.2); }
+        .feedback { margin: 1.5rem 0; padding: 1rem; border-radius: 6px; display: none; font-weight: bold; border-left: 5px solid; }
+        .correct-msg { background: #d4edda; color: #155724; border-color: #28a745; }
+        .wrong-msg { background: #f8d7da; color: #721c24; border-color: #dc3545; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.1rem; margin-top: 10px; }
+        #submit-btn { background: var(--ry-blue); color: white; }
+        #next-btn { background: #2ecc71; color: white; display: none; }
+        #final-score { text-align: center; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-ui">
+        <div class="header-box">
+            <h1>AMC Phase 1 Practice</h1>
+            <div class="progress-bar"><div id="progress-fill"></div></div>
+            <p>Question <span id="current-num">1</span> of <span id="total-num">0</span></p>
+        </div>
+
+        <div id="question-area">
+            <span class="question-text" id="q-text"></span>
+            <div id="options-list"></div>
+        </div>
+
+        <div id="feedback-area" class="feedback"></div>
+        <button id="submit-btn" onclick="checkAnswer()">Submit Answer</button>
+        <button id="next-btn" onclick="nextQuestion()">Next Question &rarr;</button>
+    </div>
+
+    <div id="final-score">
+        <h2>Section Complete!</h2>
+        <p style="font-size: 2rem;">Score: <span id="score-val">0</span> / <span id="total-final">0</span></p>
+        <button onclick="location.reload()" style="background: var(--ry-blue); color:white;">Restart Quiz</button>
+    </div>
+</div>
+
+<script>
+    const allQuestions = [
+        { q: "Which regulation covers the reporting of injuries and dangerous occurrences?", options: ["PUWER 1998", "LOLER 1998", "RIDDOR 2012", "EASA Part 145"], correct: 2, info: "RIDDOR 2012 is the primary regulation for reporting workplace accidents and diseases." },
+        { q: "What is the primary purpose of a Risk Assessment?", options: ["To assign blame", "To evaluate hazards and add control measures", "To increase maintenance speed", "To document tool usage"], correct: 1, info: "The aim is to evaluate hazards and minimize risk by adding control measures." },
+        { q: "A safety sign with a black symbol on a yellow background indicates:", options: ["Prohibition", "Mandatory Action", "Warning/Danger", "Safe Condition"], correct: 2, info: "Warning signs are characterized by black symbols on a yellow background." },
+        { q: "At what noise level is ear protection mandatory?", options: [">75dB", ">80dB", ">85dB", ">90dB"], correct: 1, info: "Ear protection is mandatory when noise levels are greater than 80dB." },
+        { q: "What color are 'Mandatory' safety signs?", options: ["Red", "Yellow", "Blue", "Green"], correct: 2, info: "Mandatory signs convey information you must comply with and must be blue." },
+        { q: "Where should bio-hazard waste be placed?", options: ["Black bags", "Clear bags", "Yellow marked bags", "Red bins"], correct: 2, info: "Bio-hazard waste must only be placed in yellow marked bags." },
+        { q: "How long can bio-hazard bags be left in a work area?", options: ["Until full", "24 hours", "End of current shift", "One week"], correct: 2, info: "These bags must not be left for longer than the end of the current shift." },
+        { q: "What document should be handed to a doctor in the event of a chemical injury?", options: ["The MOE", "The MSDS", "The CAME", "The Tech Log"], correct: 1, info: "The Material Safety Data Sheet (MSDS) should be reviewed by medical services." },
+        { q: "Which regulation governs 'Lifting Operations and Lifting Equipment'?", options: ["PUWER", "LOLER", "Part 147", "Part M"], correct: 1, info: "LOLER 1998 governs lifting operations." },
+        { q: "Who is responsible for providing PPE to employees?", options: ["The employee", "The Union", "The Employer", "The Regulator"], correct: 2, info: "It is the employer's responsibility to provide PPE free of charge." },
+        { q: "What kind of PPE protects against flying particles or corrosive splashes?", options: ["Gloves", "Safety glasses/goggles", "Bump caps", "Earplugs"], correct: 1, info: "Eyes are protected from particles and splashes by goggles or spectacles." },
+        { q: "A sign with a white pictogram on a green background indicates:", options: ["Warning", "Firefighting", "Mandatory", "Safe Condition"], correct: 3, info: "Safe condition signs (like First Aid) have a white pictogram on a green background." },
+        { q: "What is the definition of 'Working at Height'?", options: ["Over 2 meters only", "Any work where a person could fall and cause injury", "Only work on the tail", "Work requiring a ladder"], correct: 1, info: "It is any work where a person could fall a distance liable to cause injury." },
+        { q: "What must be done to a safety harness before it is worn?", options: ["Washed", "Oiled", "Inspected", "Serialized"], correct: 2, info: "Inspection of a harness must be done prior to it being worn." },
+        { q: "What does PUWER (1998) stand for?", options: ["Pressure Under Work Equipment Regs", "Provision and Use of Work Equipment Regs", "Personal Use of Work Equipment Regs", "Primary Use of Workplace Equipment Regs"], correct: 1, info: "PUWER stands for Provision and Use of Work Equipment Regulations 1998." },
+        { q: "Prohibition signs usually have which visual characteristic?", options: ["Green rectangle", "Blue circle", "Red crossed circle", "Yellow triangle"], correct: 2, info: "Prohibition signs usually have a black symbol within a red crossed circle." },
+        { q: "What are the active ingredients in most paint removers?", options: ["Water-based soaps", "Organic solvents", "Liquid nitrogen", "Inert gases"], correct: 1, info: "The active ingredients are organic solvents which can damage skin and organs." },
+        { q: "What is 'Clean-as-you-go'?", options: ["Cleaning once a week", "Removing waste promptly during the task", "Only cleaning for visitors", "A policy for cleaners only"], correct: 1, info: "This policy ensures that all spills and dirt are cleaned promptly to prevent hazards." },
+        { q: "If a task has an inherent danger, who should be informed immediately?", options: ["The CEO", "Local news", "Direct supervisor/manager", "No one"], correct: 2, info: "Inform your direct supervisor to review the task and perform an adequate risk assessment." },
+        { q: "Firefighting equipment signs are characterized by:", options: ["White symbol on red background", "Black symbol on yellow", "White symbol on blue", "Red symbol on white"], correct: 0, info: "Firefighting signs have a white symbol on a red background." },
+        { q: "What is the primary purpose of health and safety law?", options: ["To increase productivity in the workplace", "To protect the health, safety, and welfare of people at work", "To reduce employer costs", "To replace company safety procedures"], correct: 1, info: "Health and safety law is designed to protect people by preventing harm arising from work-related activities." },
+        { q: "Health and safety law encourages which approach to workplace safety?", options: ["Reactive safety management", "Minimal compliance only", "A proactive safety culture", "Reliance solely on PPE"], correct: 2, info: "Health and safety law promotes a proactive safety culture where everyone takes responsibility for safety." },
+        { q: "Which Act establishes the primary duties of employers and employees regarding workplace safety?", options: ["PUWER 1998", "Health and Safety at Work Act 1974", "RIDDOR 2012", "LOLER 1998"], correct: 1, info: "The Health and Safety at Work Act 1974 sets out the fundamental duties of employers and employees." },
+        { q: "Which regulation requires employers to carry out risk assessments?", options: ["Health and Safety at Work Act 1974", "PUWER 1998", "Management of Health and Safety at Work Regulations 1999", "Working at Height Regulations 2005"], correct: 2, info: "The Management of Health and Safety at Work Regulations 1999 place duties on employers to assess and manage risks." },
+        { q: "Which regulation covers the mandatory reporting of injuries, diseases, and dangerous occurrences?", options: ["PUWER 1998", "LOLER 1998", "RIDDOR 2012", "EASA Part 145"], correct: 2, info: "RIDDOR 2012 requires specified workplace incidents to be reported to the relevant authority." },
+        { q: "Which regulation applies specifically to the safe use of work equipment?", options: ["PUWER 1998", "LOLER 1998", "Working at Height Regulations 2005", "First Aid at Work Regulations 1981"], correct: 0, info: "PUWER 1998 ensures that work equipment is suitable, maintained, and used safely." },
+        { q: "Which regulation governs lifting operations and lifting equipment?", options: ["PUWER 1998", "LOLER 1998", "RIDDOR 2012", "Working at Height Regulations 2005"], correct: 1, info: "LOLER 1998 focuses on the safe use of lifting equipment and lifting operations." },
+        { q: "Which regulation aims to prevent falls from height?", options: ["PUWER 1998", "LOLER 1998", "Working at Height Regulations 2005", "First Aid at Work Regulations 1981"], correct: 2, info: "The Working at Height Regulations 2005 are designed to prevent injury from falls." },
+        { q: "Which regulation covers first aid provision in the workplace?", options: ["Health and Safety at Work Act 1974", "RIDDOR 2012", "Working at Height Regulations 2005", "First Aid at Work Regulations 1981"], correct: 3, info: "The First Aid at Work Regulations 1981 require employers to provide adequate first aid arrangements." },
+        { q: "What does Personal Protective Equipment (PPE) refer to?", options: ["Any safety sign used in the workplace", "Any device or appliance worn or held for protection against hazards", "Only equipment used for working at height", "Engineering controls used to eliminate hazards"], correct: 1, info: "PPE includes devices worn or held to protect individuals from health and safety risks." },
+        { q: "When should PPE be used in relation to other safety controls?", options: ["Instead of engineering controls", "Only if requested by employees", "When hazards remain after other controls are applied", "Only during emergency situations"], correct: 2, info: "PPE is used when risks cannot be adequately controlled by other means." },
+        { q: "Who is responsible for providing PPE in the workplace?", options: ["The employee", "The equipment manufacturer", "The employer, free of charge", "The regulator"], correct: 2, info: "Employers must provide appropriate PPE free of charge." },
+        { q: "Which factor should be considered when selecting PPE?", options: ["Cost only", "Size, fit, and weight for the user", "Appearance of the equipment", "How often it is used"], correct: 1, info: "PPE must suit the user to ensure comfort, effectiveness, and compliance." },
+        { q: "What must be ensured when more than one item of PPE is worn?", options: ["They are from the same manufacturer", "They can be worn together effectively", "They are replaced weekly", "They are optional"], correct: 1, info: "Multiple PPE items must be compatible and not reduce protection." },
+        { q: "Which statement best reflects PPE exemptions?", options: ["Exemptions are allowed for experienced staff", "Exemptions may be granted temporarily", "Exemptions are allowed during short tasks", "Exemptions from wearing PPE must never be allowed"], correct: 3, info: "PPE must always be worn when required, and exemptions should not be permitted." },
+        { q: "Which type of PPE is primarily used to protect against chemical splashes and flying particles affecting the eyes?", options: ["Industrial safety helmets", "Ear defenders", "Safety spectacles and goggles", "Respiratory protective equipment"], correct: 2, info: "Safety spectacles, goggles, face screens, and visors are designed to protect the eyes from splashes, dust, and projectiles." },
+        { q: "Which hazard is NOT associated with eye protection requirements?", options: ["Chemical splash", "Metal projectiles", "Noise exposure", "Radiation"], correct: 2, info: "Noise exposure affects hearing and requires ear protection, not eye protection." },
+        { q: "What is the primary purpose of head and neck PPE?", options: ["To protect against dust inhalation", "To protect against impact, entanglement, and chemical splash", "To reduce noise exposure", "To prevent slips and falls"], correct: 1, info: "Head and neck PPE protects against impacts, hair entanglement, chemical splashes, and environmental conditions." },
+        { q: "Which item is considered suitable PPE for head protection in an industrial environment?", options: ["Safety goggles", "Industrial safety helmet", "Earplugs", "Gauntlets"], correct: 1, info: "Industrial safety helmets are designed to protect the head from impact and falling objects." },
+        { q: "What factor determines whether noise becomes a hazard to hearing?", options: ["Sound pitch only", "Noise level only", "Duration of exposure only", "Both sound level and duration of exposure"], correct: 3, info: "Noise hazard is determined by both the sound level and the duration of exposure." },
+        { q: "Which PPE is appropriate for protecting against high noise levels?", options: ["Bump caps", "Earmuffs and earplugs", "Face shields", "Safety boots"], correct: 1, info: "Earplugs, earmuffs, and canal caps protect hearing from excessive noise exposure." },
+        { q: "Which hazard is commonly associated with hands and arms?", options: ["Oxygen-deficient atmospheres", "Radiation only", "Abrasion, cuts, chemicals, and electric shock", "Noise exposure"], correct: 2, info: "Hands and arms are exposed to multiple hazards including cuts, chemicals, impact, and electric shock." },
+        { q: "Which PPE is most suitable for protecting hands and arms?", options: ["Safety boots", "Industrial helmets", "Gloves and gauntlets", "Respirators"], correct: 2, info: "Gloves, gauntlets, and arm sleeving are designed to protect hands and arms from various hazards." },
+        { q: "What hazard is addressed by safety footwear with penetration-resistant midsoles?", options: ["Noise exposure", "Falling from height", "Cuts and punctures to the feet", "Chemical vapours"], correct: 2, info: "Penetration-resistant midsoles protect the feet from sharp objects and puncture injuries." },
+        { q: "Which PPE protects against oxygen-deficient atmospheres and airborne contaminants?", options: ["Safety boots", "Respiratory Protective Equipment (RPE)", "Face shields", "Ear defenders"], correct: 1, info: "RPE protects against dusts, gases, vapours, and oxygen-deficient environments." },
+        { q: "Who is responsible for health and safety in the hangar?", options: ["Management only", "Health and safety officers only", "Employees with less than five years’ experience", "Everyone"], correct: 3, info: "Health and safety is everyone’s responsibility, and no one is exempt from compliance." },
+        { q: "What action should be taken if an unsafe condition is identified in the hangar?", options: ["Ignore it if it does not affect your task", "Wait for an inspection", "Rectify it or report it promptly", "Record it at the end of the shift"], correct: 2, info: "Unsafe conditions must be corrected or reported immediately to prevent accidents." },
+        { q: "What does the 'clean as you go' policy aim to prevent?", options: ["Equipment wear", "Production delays", "Hazards caused by spills and debris", "Noise exposure"], correct: 2, info: "Cleaning spills and debris promptly reduces hazards to employee health and safety." },
+        { q: "What is the primary aim of a risk assessment?", options: ["To assign blame after an accident", "To identify hazards and eliminate or reduce risk", "To meet legal requirements only", "To replace safety training"], correct: 1, info: "Risk assessments aim to identify hazards and apply control measures to reduce risk." },
+        { q: "What should staff do if they become aware of a new hazard during a task?", options: ["Continue working until the task is complete", "Report it to their supervisor or manager", "Update the risk assessment themselves", "Ignore it if PPE is worn"], correct: 1, info: "Any newly identified hazard must be reported so the risk assessment can be reviewed and updated." },
+        { q: "What is the purpose of prohibition safety signs?", options: ["To indicate safe routes and exits", "To warn of potential hazards", "To indicate actions that must not be carried out", "To identify firefighting equipment"], correct: 2, info: "Prohibition signs show workers what they must not do in the workplace." },
+        { q: "What colour combination is used for prohibition signs?", options: ["Black symbol on yellow background", "White symbol on green background", "Black symbol within a red crossed circle", "White symbol on red background"], correct: 2, info: "Prohibition signs consist of a black symbol within a red crossed circle." },
+        { q: "What is the primary purpose of warning safety signs?", options: ["To indicate mandatory actions", "To show the location of safety equipment", "To warn of hazards or danger", "To prohibit certain behaviours"], correct: 2, info: "Warning signs highlight hazards or dangers that may be present in the workplace." },
+        { q: "What colour scheme is used for warning safety signs?", options: ["White symbol on green background", "Black symbol on yellow background", "White symbol on blue background", "Black symbol within a red circle"], correct: 1, info: "Warning signs feature a black symbol on a yellow background." },
+        { q: "What is the main function of mandatory safety signs?", options: ["To highlight fire equipment", "To prohibit unsafe acts", "To indicate safe conditions", "To instruct required behaviour"], correct: 3, info: "Mandatory signs tell workers what they must do to remain safe." },
+        { q: "Which colour is used for mandatory safety signs?", options: ["Green", "Red", "Blue", "Yellow"], correct: 2, info: "Mandatory safety signs must be blue." },
+        { q: "Which type of safety sign is commonly used to indicate the need to wear PPE?", options: ["Warning", "Prohibition", "Mandatory", "Safe Condition"], correct: 2, info: "Mandatory signs are often used to indicate PPE requirements." },
+        { q: "What do safe condition signs identify?", options: ["Fire hazards", "Unsafe activities", "Places of safety and safe behaviour", "Mandatory actions"], correct: 2, info: "Safe condition signs show safe routes, exits, or locations of safety equipment." },
+        { q: "Which description correctly applies to safe condition signs?", options: ["Circular with red border", "Rectangular with white symbol on red background", "Square or rectangular with white pictogram on green background", "Triangular with black symbol on yellow background"], correct: 2, info: "Safe condition signs are square or rectangular with a green background and white pictogram." },
+        { q: "What is the purpose of fire fighting equipment signs?", options: ["To warn of fire hazards", "To prohibit smoking", "To identify firefighting equipment", "To indicate emergency exits"], correct: 2, info: "Fire fighting equipment signs identify the location of firefighting equipment." },
+        { q: "What colour scheme is used for fire fighting equipment signs?", options: ["White symbol on green background", "Black symbol on yellow background", "White symbol on red background", "Black symbol within a red circle"], correct: 2, info: "Firefighting equipment signs are rectangular with a white symbol on a red background." },
+        { q: "What is the primary purpose of Material Safety Data Sheets (MSDS)?", options: ["To record maintenance activity", "To catalogue chemical safety information", "To identify fire exits", "To document risk assessments"], correct: 1, info: "MSDS provide information on chemical hazards, safe use, and handling procedures." },
+        { q: "Which information is typically found on an MSDS?", options: ["Employee training records", "Safe use instructions and hazard information", "Noise exposure limits", "PPE exemption details"], correct: 1, info: "MSDS include instructions for safe handling and details of potential hazards." },
+        { q: "What is considered working at height?", options: ["Any work above ground level", "Work where a fall could cause personal injury", "Only work above two metres", "Work carried out on ladders only"], correct: 1, info: "Working at height is defined as any work where a fall could result in injury." },
+        { q: "What should be worn when working at height where a fall could cause injury?", options: ["Safety boots", "Eye protection", "A safety harness", "Ear defenders"], correct: 2, info: "A safety harness should be worn when there is a risk of injury from a fall." },
+        { q: "When must a safety harness be inspected?", options: ["After use only", "Monthly", "Before it is worn", "Annually"], correct: 2, info: "Harnesses must be inspected prior to use to ensure they are safe." },
+        { q: "When is hearing protection mandatory?", options: ["When noise exceeds 70 dB", "When noise exceeds 75 dB", "When noise exceeds 80 dB", "Only when instructed by management"], correct: 2, info: "Hearing protection becomes mandatory when noise levels exceed 80 dB." },
+        { q: "When is ear protection optional?", options: ["When noise exceeds 80 dB", "When noise is perceived as annoying", "When noise levels are less than 80 dB", "Never"], correct: 2, info: "Ear protection is optional when noise levels are below 80 dB." },
+        { q: "What type of substances are the active ingredients in most common paint strippers?", options: ["Inorganic acids", "Organic solvents", "Alkaline detergents", "Water-based emulsions"], correct: 1, info: "Most paint removers contain organic solvents that can harm the skin, eyes, respiratory tract, and internal organs." },
+        { q: "Which PPE should be worn to prevent eye irritation when working with paint strippers?", options: ["Face shield only", "Safety spectacles", "Light-weight plastic splash goggles", "Respirator"], correct: 2, info: "Splash goggles protect the eyes from splashes when pouring or using paint removers." },
+        { q: "Which item of PPE is mandatory when using paint removers?", options: ["Ear defenders", "Gloves", "Safety boots only", "Hard hat"], correct: 1, info: "Gloves must be worn to protect the skin when using paint removers." },
+        { q: "Where should the correct glove specification for paint remover use be obtained?", options: ["Company handbook", "Supervisor guidance", "Material Safety Data Sheet (MSDS)", "Tool control log"], correct: 2, info: "The MSDS provides detailed information on appropriate glove materials for chemical protection." },
+        { q: "Which additional clothing helps reduce skin contact when using paint strippers?", options: ["Short-sleeved shirt", "High-visibility vest", "Long pants, long sleeves, and a waterproof apron", "Cotton gloves"], correct: 2, info: "Protective clothing reduces the risk of chemical contact with the skin." },
+        { q: "Why must waste management procedures be strictly followed in aviation?", options: ["To reduce costs", "Due to the hazardous nature of aviation chemicals and fluids", "To comply with environmental policy only", "To simplify maintenance tasks"], correct: 1, info: "Aviation chemicals and fluids are hazardous and must be disposed of correctly." },
+        { q: "Is it permissible to deviate from an employer’s waste disposal procedures?", options: ["Yes, with supervisor approval", "Yes, in emergency situations", "No, deviation is not permitted", "Only during night shifts"], correct: 2, info: "Waste disposal procedures must be followed exactly as defined by the employer." },
+        { q: "How must bio-hazard waste be disposed of?", options: ["In standard refuse bags", "In red-marked containers", "In yellow-marked bags", "In sealed metal containers"], correct: 2, info: "Bio-hazard waste must only be placed in yellow-marked bags." },
+        { q: "How long may bio-hazard waste remain in a bay or work area?", options: ["Up to 48 hours", "Until collected by stores", "No longer than the end of the current shift", "Indefinitely if sealed"], correct: 2, info: "Bio-hazard waste must not remain in the area beyond the current shift." },
+        { q: "What action must be taken in the event of a significant chemical or fuel spillage?", options: ["Clean it immediately without reporting", "Report it at the end of the shift", "Inform local emergency services immediately", "Record it in the technical log only"], correct: 2, info: "Emergency services must be informed immediately following significant hazardous spills." },
+        { q: "What is the primary goal of system safety in aircraft engineering?", options: ["To reduce maintenance costs", "To improve aircraft performance", "To optimise safety by identifying and controlling risks", "To eliminate the need for inspections"], correct: 2, info: "System safety aims to identify and control risks to achieve acceptable safety levels." },
+        { q: "How are safety-related risks managed within system safety?", options: ["By operational experience only", "By elimination or control through design and procedures", "By increasing inspections", "By issuing safety notices"], correct: 1, info: "System safety manages risk through design changes and procedural controls." },
+        { q: "Who is permitted to open or close aircraft doors?", options: ["Any maintenance staff", "Cabin crew only", "Personnel trained to do so safely", "Supervisors only"], correct: 2, info: "Only trained personnel may operate aircraft doors safely." },
+        { q: "What must be done before opening an aircraft passenger door fitted with an escape slide?", options: ["Disconnect electrical power", "Remove the girt bar from the floor mounts", "Deflate the slide", "Install ground locks"], correct: 1, info: "Failure to remove the girt bar will cause the escape slide to deploy." },
+        { q: "Which aircraft doors pose a higher risk of injury due to spring loading?", options: ["Cargo doors", "Main passenger doors", "Emergency over-wing exits", "Avionics bay doors"], correct: 2, info: "Emergency over-wing exits are spring-loaded and can cause injury if mishandled." },
+        { q: "How should aircraft access panels and engine cowlings be supported when open?", options: ["By steps or ground equipment", "By hand only", "By their hold-open stays where fitted", "By ropes or straps"], correct: 2, info: "Hold-open stays are designed to safely support panels and cowlings." },
+        { q: "What must be confirmed before closing aircraft access panels or engine cowlings?", options: ["Hydraulics are pressurised", "All tools and items are removed and latches secured", "Ground locks are installed", "The aircraft is powered down"], correct: 1, info: "Panels must be clear of tools and properly secured before closure." },
+        { q: "What is the purpose of ground locks?", options: ["To prevent aircraft movement", "To lock hydraulic actuators during maintenance", "To isolate electrical systems", "To secure doors"], correct: 1, info: "Ground locks protect personnel and systems by locking hydraulic actuators." },
+        { q: "What identifying feature is fitted to all ground locks and pins?", options: ["Blue label", "Flashing light", "Red pennant marked 'REMOVE BEFORE FLIGHT'", "Serial number plate"], correct: 2, info: "Red pennants provide a visual warning that locks must be removed before flight." },
+        { q: "How must the fitting of ground locks during maintenance be recorded?", options: ["Verbally during shift handover", "On a job card or aircraft technical log", "In the stores system", "On the flight plan"], correct: 1, info: "Recording ensures all locks are removed prior to flight and maintains flight safety." },
+        { q: "What is the primary purpose of circuit breakers on an aircraft?", options: ["To protect wiring from corrosion", "To isolate electrical systems during emergencies or maintenance", "To regulate electrical voltage", "To indicate system status to the flight crew"], correct: 1, info: "Circuit breakers allow electrical systems to be isolated by flight crew in emergencies and by maintenance personnel during maintenance." },
+        { q: "How are aircraft circuit breakers typically identified?", options: ["By colour coding only", "By system location only", "By number/letter codes and shortened words or numbers", "By warning labels only"], correct: 2, info: "Circuit breakers are identified by group codes and individual labels using letters and/or numbers." },
+        { q: "What must be attached when a circuit breaker is pulled to deactivate a system?", options: ["A maintenance release", "A red warning flag", "A DO-NOT-OPERATE label", "A technical log entry only"], correct: 2, info: "A DO-NOT-OPERATE label warns other personnel that the system is intentionally isolated." },
+        { q: "When may a pulled circuit breaker be reactivated?", options: ["At the end of the shift", "When the task is complete", "Only after consulting the zone supervisor", "At the discretion of the technician"], correct: 2, info: "Circuit breakers must not be reactivated until the zone supervisor has been consulted." },
+        { q: "What actions may be required prior to carrying out maintenance on aircraft systems?", options: ["Electrical testing only", "Depressurisation, draining, venting, or cooling", "Rebooting aircraft computers", "Removal of circuit breakers only"], correct: 1, info: "Many systems require depressurisation, draining, venting, or cooling before maintenance." },
+        { q: "How should isolated systems be identified during maintenance?", options: ["By verbal communication only", "By marking circuit breakers, switches, and levers with DO-NOT-OPERATE labels", "By recording in the aircraft log only", "By removing system power cables"], correct: 1, info: "Clear labelling prevents inadvertent system operation during maintenance." },
+        { q: "Why do fuel systems often require draining and venting before maintenance?", options: ["To reduce aircraft weight", "To prevent electrical faults", "To remove flammable fuel and vapours", "To simplify system isolation"], correct: 2, info: "Draining and venting fuel systems reduces fire and explosion risk during maintenance." },
+        { q: "Which aircraft systems require draining and flushing prior to maintenance?", options: ["Hydraulic systems only", "Fuel systems only", "Aircraft toilet and water systems", "Pneumatic systems only"], correct: 2, info: "Toilet and water systems must be drained and flushed before maintenance." },
+        { q: "What must be done to all aircraft systems before maintenance or system breakdown?", options: ["They must be pressurised", "Their motive power must be deactivated", "They must be electrically isolated only", "They must be fully dismantled"], correct: 1, info: "Deactivating motive power ensures personnel safety and prevents system damage." },
+        { q: "Why is communication with other maintenance zones important when isolating systems?", options: ["To speed up maintenance tasks", "To avoid duplication of work", "To prevent inadvertent system operation and potential damage", "To update the maintenance schedule"], correct: 2, info: "Poor communication can lead to unintended system operation such as flooding or system damage." },
+        { q: "What is required before carrying out maintenance on hydraulic systems?", options: ["Electrical isolation only", "Depressurisation of the system and reservoir head pressure", "Cooling of hydraulic fluid only", "Removal of hydraulic pumps"], correct: 1, info: "Hydraulic systems must be depressurised to prevent injury and equipment damage." },
+        { q: "How may sections of a hydraulic system be isolated on some aircraft?", options: ["By mechanical locks only", "By closing manual shut-off valves", "By electrically operated valves", "By removing hydraulic lines"], correct: 2, info: "Electrically operated valves can isolate hydraulic system sections on some aircraft." },
+        { q: "Which condition occurs when a hydraulic system exceeds its maximum operating temperature?", options: ["Loss of system pressure", "Hydraulic fluid contamination", "System overheat", "Pump cavitation"], correct: 2, info: "System overheat requires the hydraulic system to be de-energised." },
+        { q: "Which two causes can result in loss of hydraulic system pressure?", options: ["Overheating and contamination", "Loss of fluid or hydraulic pump failure", "Electrical failure and air ingestion", "Seal wear and vibration"], correct: 1, info: "Pressure loss occurs due to fluid loss or pump failure." },
+        { q: "What type of contamination can affect hydraulic fluid?", options: ["Thermal contamination only", "Chemical or particulate contamination", "Electrical contamination", "Moisture contamination only"], correct: 1, info: "Hydraulic contamination can be chemical or particulate in nature." },
+        { q: "What is a possible consequence of hydraulic fluid contamination?", options: ["Improved system efficiency", "Loss of system efficiency and premature component failure", "Reduced system temperature", "Increased pump output"], correct: 1, info: "Contamination leads to wear, leaks, and loss of hydraulic system efficiency." },
+        { q: "Why might a pneumatic system require depressurisation before maintenance?", options: ["To prevent corrosion", "To remove stored energy from pressurised air", "To reduce electrical load", "To isolate hydraulic systems"], correct: 1, info: "Depressurisation removes stored pneumatic energy, reducing maintenance hazards." },
+        { q: "What is a bleed air leak?", options: ["Controlled release of air for cooling", "Loss of cabin pressurisation only", "Uncontrolled loss of bleed air from the pneumatic system", "Failure of air conditioning systems only"], correct: 2, info: "A bleed air leak is an uncontrolled loss of bleed air from the pneumatic system." },
+        { q: "Which hazard may result from a bleed air leak?", options: ["Improved system performance", "Aircraft wiring damage", "Reduced cabin noise", "Lower fuel consumption"], correct: 1, info: "Bleed air leaks can damage wiring and cause overheating or fire." },
+        { q: "Which aircraft systems may be affected when part of the bleed air system is isolated?", options: ["Landing gear only", "Navigation systems only", "Pneumatically powered systems such as air conditioning and anti-icing", "Flight control computers only"], correct: 2, info: "Bleed air isolation can degrade systems relying on pneumatic power." },
+        { q: "What risk is associated with positioning aircraft stands or equipment too close to an aircraft?", options: ["Increased maintenance time", "Damage to aircraft surfaces or components", "Reduced equipment stability", "Electrical interference"], correct: 1, info: "Incorrect positioning of stands or equipment can result in damage to aircraft structures or components." },
+        { q: "Which equipment is commonly used to access areas that cannot be reached by fixed aircraft stands?", options: ["Tow bars", "Hydraulic jacks", "Mobile Elevated Work Platforms (MEWPs)", "Ground power units"], correct: 2, info: "MEWPs, such as scissor lifts, allow access to areas not reachable by fixed stands." },
+        { q: "What is required before operating a MEWP vehicle near an aircraft?", options: ["Supervisor approval only", "High-visibility clothing", "Training, confidence, and spatial awareness", "Electrical isolation of the aircraft"], correct: 2, info: "Operators must be trained and have good spatial awareness when using MEWPs." },
+        { q: "What action should be taken if there is a risk of striking personnel or aircraft with a MEWP?", options: ["Proceed slowly", "Cancel the task", "Ask a colleague to act as a safety man", "Use warning cones only"], correct: 2, info: "A safety man should be used to guide movement and reduce collision risk." },
+        { q: "What must be done before lifting or lowering an aircraft?", options: ["Apply ground locks only", "Conduct a detailed aircraft walk-around and inform all personnel", "Remove all panels", "Depressurise hydraulic systems"], correct: 1, info: "A full walk-around and personnel awareness ensures safe lifting operations." },
+        { q: "Why are aircraft lifted from the hangar floor?", options: ["For painting only", "For weighing, maintenance, or repair", "To inspect landing lights", "For fuel tank access"], correct: 1, info: "Aircraft may be raised for weighing, maintenance, or repair tasks." },
+        { q: "What must be followed when jacking a single landing gear leg?", options: ["Manufacturer’s maintenance manual procedures", "Local engineering practice only", "Supervisor instruction only", "Any approved jacking method"], correct: 0, info: "Single-leg jacking must be carried out strictly in accordance with the maintenance manual." },
+        { q: "Why is it important to use the correct number of personnel during aircraft jacking operations?", options: ["To reduce time taken", "To comply with staffing policies", "To ensure safe operation and coordination", "To monitor aircraft systems"], correct: 2, info: "Jacking operations require coordination and adequate staffing for safety." },
+        { q: "What safety feature is fitted to most large aircraft jacks to prevent collapse?", options: ["Pressure relief valve", "Hydraulic bypass valve", "Screw-type safety locking collar", "Mechanical support stand"], correct: 2, info: "Safety locking collars prevent jack collapse in the event of a hydraulic leak." },
+        { q: "How should safety locking collars be used during aircraft lifting?", options: ["Locked only after lifting is complete", "Left fully retracted", "Gradually screwed down as the aircraft is raised", "Tightened only in an emergency"], correct: 2, info: "Gradually engaging the collar ensures continuous protection during lifting." },
+        { q: "Why are most lubricating oils considered a fire risk?", options: ["They ignite spontaneously", "They are always highly volatile", "They are flammable if sufficient heat is generated", "They react with air"], correct: 2, info: "Lubricating oils can ignite when exposed to sufficient heat." },
+        { q: "Which substances may be harmful or toxic if inhaled?", options: ["Mineral oils only", "Synthetic lubricating oils, methanol, and some hydraulic oils", "Aviation fuels only", "Greases only"], correct: 1, info: "Certain oils and chemicals can produce harmful vapours." },
+        { q: "What injury can occur if certain oils contact the eyes?", options: ["Temporary irritation only", "Permanent hearing loss", "Injury or blindness", "Skin discolouration"], correct: 2, info: "Chemical contact with eyes can cause severe injury or blindness." },
+        { q: "Where should warnings and handling procedures for oils and fuels be obtained?", options: ["Company notice boards", "Maintenance manuals", "Verbal briefings", "Tool control procedures"], correct: 1, info: "Maintenance manuals contain health warnings and handling instructions." },
+        { q: "What effect can oils and fuels have on aircraft materials?", options: ["Improve corrosion resistance", "Have no effect on finishes", "Adversely affect paintwork, adhesives, and sealants", "Strengthen protective coatings"], correct: 2, info: "Oils and fuels can damage finishes and inhibit corrosion protection." },
+        { q: "What must be done if an oil or fuel spillage occurs?", options: ["Report it at the end of the shift", "Cover it and leave it", "Clean it up immediately", "Wait for environmental services"], correct: 2, info: "Spillages must be cleaned immediately to prevent damage and hazards." },
+        { q: "What precaution should be taken during weather radar testing?", options: ["Aircraft must be powered down", "Safety men should be positioned and staff informed", "Only night testing is allowed", "The hangar must be evacuated"], correct: 1, info: "Safety personnel and awareness reduce risk during radar testing." },
+        { q: "Why is correct flight deck configuration knowledge important?", options: ["To reduce paperwork", "To identify aircraft ownership", "To understand servicing and system disturbances affecting flight", "To improve pilot comfort"], correct: 2, info: "Understanding configuration ensures flight safety after maintenance." },
+        { q: "What do flashing red anti-collision lights indicate?", options: ["The aircraft is unserviceable", "Ground power is connected", "Do not approach the aircraft", "Doors are open"], correct: 2, info: "Anti-collision lights indicate that the aircraft should not be approached." },
+        { q: "What is the primary goal of System Safety?", options: ["To increase profit", "To eliminate or control risks by design/procedure", "To reduce fuel burn", "To train pilots"], correct: 1, info: "The goal is to optimize safety by identifying and controlling risks[cite: 660]." },
+        { q: "What must be removed before opening a passenger door to prevent slide deployment?", options: ["Safety pin", "Vent handle", "Girt bar", "Internal latch"], correct: 2, info: "The girt bar must be removed from floor mounts before opening[cite: 664]." },
+        { q: "Which doors are spring-loaded and can cause injury if personnel stand on the side they open toward?", options: ["Cargo doors", "Cockpit windows", "Emergency over-wing exits", "Passenger L1 door"], correct: 2, info: "Emergency over-wing exits are spring-loaded and require caution[cite: 666]." },
+        { q: "What should support engine cowlings when they are open?", options: ["Steps", "Hold open stays", "A colleague", "Rope"], correct: 1, info: "Always ensure cowlings are supported by their hold open stays[cite: 668]." },
+        { q: "Ground locks are designed to safely lock which components during maintenance?", options: ["Galley ovens", "Hydraulic actuators", "Seat belts", "Window shades"], correct: 1, info: "They lock hydraulic actuators for flight controls and landing gear[cite: 672, 673]." },
+        { q: "What words are printed on the red pennants attached to ground locks?", options: ["DO NOT TOUCH", "DANGER: HIGH PRESSURE", "REMOVE BEFORE FLIGHT", "MAINTENANCE IN PROGRESS"], correct: 2, info: "All locks and pins have a red 'REMOVE BEFORE FLIGHT' pennant[cite: 675]." },
+        { q: "Where must the fitment of ground locks be recorded?", options: ["On a scrap of paper", "In the personal logbook", "Job card or aircraft technical log", "The MOE"], correct: 2, info: "A record must be raised on a job card or in the aircraft technical log[cite: 677]." },
+        { q: "What must be attached to a pulled circuit breaker to warn others?", options: ["A piece of tape", "A 'DO-NOT-OPERATE' label", "A master switch", "A yellow ribbon"], correct: 1, info: "A DO-NOT-OPERATE label must be attached to indicate system deactivation[cite: 682]." },
+        { q: "Hydraulic reservoir head pressure is usually:", options: ["Hydraulic", "Electrical", "Pneumatic", "Thermal"], correct: 2, info: "Depressurization of the reservoir head pressure is usually pneumatic[cite: 686]." },
+        { q: "What can be a secondary effect of isolating part of the bleed air system?", options: ["Increased engine power", "Degradation of anti-icing systems", "Improved air conditioning", "Faster takeoff"], correct: 1, info: "Isolation can degrade anti-icing, air conditioning, and air-driven pumps[cite: 709, 712, 713]." },
+        { q: "What does MEWP stand for?", options: ["Mechanical Elevated Work Platform", "Mobile Elevated Work Platform", "Maintenance Electronic Work Port", "Manual Entry Work Procedure"], correct: 1, info: "MEWP stands for Mobile Elevated Work Platform, such as a scissor lift[cite: 716]." },
+        { q: "What is an 'unacceptable practice' when jacking an aircraft?", options: ["Using three people", "Ignorance of the location of equipment/personnel", "Checking the manual", "Using a safety collar"], correct: 1, info: "Ignorance of surroundings is unacceptable during lifting/lowering[cite: 720]." },
+        { q: "What is the purpose of a screw-type safety locking collar on a jack?", options: ["To measure height", "To prevent jack collapse in a leak", "To speed up lifting", "To attach the wheels"], correct: 1, info: "It prevents the jack from collapsing if there is a sudden leak[cite: 726]." },
+        { q: "Which fluid is higher risk due to being more volatile?", options: ["Aviation oil", "Aviation fuel (kerosene)", "Hydraulic fluid", "Grease"], correct: 1, info: "Aviation fuels like kerosene are more volatile than oils[cite: 729]." },
+        { q: "What can happen if synthetic oil comes into contact with the eyes?", options: ["Improved vision", "Minor itching", "Injury or blindness", "Nothing"], correct: 2, info: "Synthetic oils and methanol can cause injury or blindness on contact[cite: 732]." },
+        { q: "What safety measure is used during Weather Radar tests?", options: ["Safety men in place", "Turning off the hangar lights", "Opening all windows", "Using a megaphone"], correct: 0, info: "Safety men should be used and staff made aware during radar tests[cite: 739]." },
+        { q: "What do bright red flashing anti-collision lights indicate?", options: ["Maintenance is finished", "Do NOT approach the aircraft", "The aircraft is out of fuel", "Safe to enter cockpit"], correct: 1, info: "When these flash, do not approach the aircraft[cite: 746]." },
+        { q: "What causes 'Quilting' on aircraft skin?", options: ["Using too little sealant", "Lack of paint", "Over-torqued fasteners or excessive sealant", "High-speed flight"], correct: 2, info: "Over-torqued fasteners or excessive sealant cause this un-aerodynamic effect[cite: 457, 458]." },
+        { q: "What is the primary hazard of microwave radiation from weather radar?", options: ["Noise", "Skin burns", "Harm to humans/ground personnel", "Static electricity"], correct: 2, info: "Microwave radiation is suspected of causing harm to humans[cite: 737]." },
+        { q: "Who must be consulted before reactivating a pulled circuit breaker?", options: ["The pilot", "The CEO", "The zone supervisor", "The junior mechanic"], correct: 2, info: "On no account reactivate until the zone supervisor is consulted[cite: 683]." },
+    
+        { q: "What does EASA stand for?", options: ["European Aviation Standard Agency", "European Aviation Safety Agency", "Engineers and Aviators Safety Association", "Electronic Aviation Safety Authority"], correct: 1, info: "EASA is the European Aviation Safety Agency[cite: 748]." },
+        { q: "Which regulation governs EASA?", options: ["Regulation (EC) 145/2010", "Regulation (EC) 216/2008", "Regulation (EU) 2012/99", "Regulation (UK) 1974"], correct: 1, info: "EASA is governed by Regulation (EC) 216/2008[cite: 754]." },
+        { q: "What document must an MRO submit to obtain Part 145 approval?", options: ["MOE (Maintenance Organisation Exposition)", "CAME", "AOC", "MTOE"], correct: 0, info: "An MRO must submit a Maintenance Organisation Exposition (MOE)[cite: 755, 778]." },
+        { q: "Which EASA Part covers aircraft maintenance engineer licensing?", options: ["Part 145", "Part M", "Part 66", "Part 147"], correct: 2, info: "Part 66 governs engineering licenses[cite: 757, 758]." },
+        { q: "What can a Category A license holder certify?", options: ["Base maintenance", "Minor scheduled line maintenance", "Avionic modifications", "Engine overhauls"], correct: 1, info: "CAT A is for minor scheduled line maintenance and simple defect rectification[cite: 757]." },
+        { q: "A Category B1 license covers which systems?", options: ["Avionics only", "Structures, engines, and mechanical/electrical systems", "Paint and trim only", "Base maintenance management"], correct: 1, info: "B1 covers structure, powerplant, mechanical and electrical systems[cite: 758]." },
+        { q: "Which license category is required to release an aircraft from Base Maintenance?", options: ["CAT A", "CAT B1", "CAT B2", "CAT C"], correct: 3, info: "Category C license permits release after base maintenance[cite: 760]." },
+        { q: "What does CAMO stand for?", options: ["Component and Maintenance Organization", "Continuing Airworthiness Management Organisation", "Civil Aviation Maintenance Office", "Certified Aircraft Management Order"], correct: 1, info: "CAMO stands for Continuing Airworthiness Management Organisation[cite: 754, 768]." },
+        { q: "Which Part governs maintenance training organizations?", options: ["Part 21", "Part 145", "Part 147", "Part M"], correct: 2, info: "Part 147 governs training organizations[cite: 762]." },
+        { q: "What is the document for a Training Organization (Part 147) similar to an MOE?", options: ["MTOE", "CAME", "MOE", "AOC"], correct: 0, info: "Part 147 organizations use a Maintenance Training Organisation Exposition (MTOE)[cite: 763]." },
+        { q: "Which Part 21 subpart governs 'Production Organisation Approval'?", options: ["Subpart J", "Subpart G", "Subpart M", "Subpart A"], correct: 1, info: "Subpart G provides for a Production Organisation Approval (POA)[cite: 765]." },
+        { q: "What must a CAMO maintain to allow an airline to fly?", options: ["MOE", "AOC (Air Operator Certificate)", "A driver's license", "A library"], correct: 1, info: "The CAMO is responsible for maintaining the AOC[cite: 768]." },
+        { q: "What is the CAME?", options: ["A list of tools", "Continuing Airworthiness Management Exposition", "Civil Aviation Management Entry", "A training manual"], correct: 1, info: "CAME is the document detailing how the CAMO conducts activities[cite: 771]." },
+        { q: "Who is the Quality Department answerable to?", options: ["The CEO", "The Pilots", "The Accountable Manager", "The Line Supervisor"], correct: 2, info: "They must remain independent and answerable only to the Accountable Manager[cite: 784, 813]." },
+        { q: "What is the purpose of an audit?", options: ["To find people to fire", "To check conformance to rules (MOE/CAME)", "To speed up repairs", "To count tools"], correct: 1, info: "The purpose is to look for conformance to rules defined in the MOE or CAME[cite: 787]." },
+        { q: "Which regulation concerns the airworthiness of aeronautical products?", options: ["Part 147", "Part 145", "Part M", "Part 66"], correct: 2, info: "Part M concerns the continuing airworthiness of aircraft and products[cite: 754]." },
+        { q: "Why is root cause analysis carried out on errors?", options: ["To punish staff", "To prevent repetition and improve safety", "To satisfy the bank", "To waste time"], correct: 1, info: "Learning from mistakes so as not to repeat them puts safety at the forefront[cite: 792, 793]." },
+        { q: "Which is a mandatory recurrent training for aircraft personnel?", options: ["Baking", "Human Factors", "Advanced Welding", "Flight Simulator"], correct: 1, info: "Human Factors with Safety Management System is mandatory recurrent training[cite: 794]." },
+        { q: "What are the three segments of 'Competence'?", options: ["Speed, Strength, Size", "Skills, Knowledge, Attitude", "Tools, Manuals, Parts", "Money, Time, Effort"], correct: 1, info: "Competence is split into Skills, Knowledge, and Attitude[cite: 796]." },
+        { q: "EASA Part 21 Subpart J governs:", options: ["Manufacturing", "Training", "Design Organisation Approval (DOA)", "Licensing"], correct: 2, info: "Subpart J provides for Design Organisation Approval[cite: 765]." },
+        { q: "What is the primary role of the European Union Aviation Safety Agency (EASA)?", options: ["To operate commercial aircraft within the EU", "To regulate and oversee civilian aviation safety", "To enforce national aviation law", "To train licensed engineers"], correct: 1, info: "EASA has regulatory and executive responsibilities for civilian aviation safety within the EU." },
+        { q: "Which of the following is a responsibility of EASA?", options: ["Issuing national aviation law", "Authorising foreign operators", "Operating aircraft maintenance organisations", "Providing legally binding interpretations of regulations"], correct: 1, info: "EASA authorises foreign operators as part of its safety oversight responsibilities." },
+        { q: "Which activity is included in EASA’s responsibilities?", options: ["Aircraft operation", "Drafting national aviation law", "Implementing and monitoring safety rules", "Approving flight crew rosters"], correct: 2, info: "EASA implements and monitors aviation safety rules, including inspections in Member States." },
+        { q: "What certification authority does EASA hold?", options: ["Aircraft registration", "Type-certification of aircraft and components", "Pilot licensing", "Airport security certification"], correct: 1, info: "EASA is responsible for type-certification of aircraft and aeronautical components." },
+        { q: "Which Regulation governs EASA?", options: ["Regulation (EU) 965/2012", "Regulation (EC) 216/2008", "Regulation (EU) 1321/2014", "Regulation (EC) 2042/2003"], correct: 1, info: "EASA is governed by Regulation (EC) 216/2008." },
+        { q: "Can EASA provide legally binding interpretations of EU aviation regulations?", options: ["Yes, always", "Yes, with Commission approval", "No", "Only for Part 145"], correct: 2, info: "EASA cannot issue legally binding interpretations of EU Regulations." },
+        { q: "Who is responsible for interpreting and implementing EU aviation law?", options: ["EASA", "The European Commission", "EU Member States", "ICAO"], correct: 2, info: "EU Member States are responsible for implementing and interpreting EU law within their national systems." },
+        { q: "What does EASA Part M primarily concern?", options: ["Aircraft manufacturing approval", "Flight operations", "Continuing airworthiness of aircraft", "Maintenance licensing only"], correct: 2, info: "Part M addresses continuing airworthiness of aircraft and aeronautical products." },
+        { q: "Which organisation is specifically referenced under Part M?", options: ["Maintenance Repair Organisation (MRO)", "Approved Training Organisation (ATO)", "Continuing Airworthiness Management Organisation (CAMO)", "Design Organisation Approval (DOA)"], correct: 2, info: "Part M includes requirements for Continuing Airworthiness Management Organisations (CAMOs)." },
+        { q: "What document must an organisation produce to obtain Part 145 approval?", options: ["Maintenance Task Card", "Compliance Checklist", "Maintenance Organisation Exposition (MOE)", "Quality Manual"], correct: 2, info: "An MOE defines how the organisation complies with Part 145 requirements." },
+        { q: "What must support a Maintenance Organisation Exposition (MOE)?", options: ["Training records only", "A documented set of procedures", "A flight operations manual", "A minimum equipment list"], correct: 1, info: "The MOE must be supported by documented procedures describing organisational processes." },
+        { q: "Why is a compliance matrix required under Part 145?", options: ["To list staff qualifications", "To demonstrate conformity with Part 145 requirements", "To record maintenance tasks", "To approve subcontractors"], correct: 1, info: "A compliance matrix shows how the organisation meets each Part 145 requirement." },
+        { q: "What privilege does a Part 66 Category A licence provide?", options: ["Certification of base maintenance", "Certification of avionic systems only", "Release to service after minor line maintenance", "Approval of maintenance programmes"], correct: 2, info: "Category A allows certification following minor scheduled line maintenance and simple defect rectification." },
+        { q: "What limits apply to a Part 66 Category A licence holder?", options: ["No limits apply", "Tasks endorsed on their authorisation only", "Base maintenance only", "Avionics systems only"], correct: 1, info: "Category A privileges are limited to tasks specifically endorsed on the authorisation." },
+        { q: "What maintenance privileges does a Part 66 Category B1 licence holder have?", options: ["Avionic systems only", "Aircraft structure, powerplant, and mechanical and electrical systems", "Minor line maintenance only", "Non-certifying maintenance only"], correct: 1, info: "Category B1 covers aircraft structure, powerplant, and mechanical and electrical systems." },
+        { q: "What maintenance privileges does a Part 66 Category B2 licence holder have?", options: ["Mechanical systems only", "Structural repairs only", "Avionic and electrical systems", "Fuel and hydraulic systems"], correct: 2, info: "Category B2 applies to avionic and electrical system maintenance." },
+        { q: "What is the primary purpose of the Maintenance Organisation Exposition (MOE)?", options: ["To record completed maintenance tasks", "To detail how an MRO conducts maintenance in compliance with regulations", "To certify aircraft airworthiness", "To manage personnel licensing"], correct: 1, info: "The MOE explains to the authority how the MRO will conduct maintenance on aircraft under its care." },
+        { q: "Which organisation must write, submit, and keep an MOE updated?", options: ["Continuing Airworthiness Management Organisation", "Approved Training Organisation", "Maintenance Repair Organisation", "Design Organisation"], correct: 2, info: "An organisation must maintain an MOE to obtain and retain MRO approval." },
+        { q: "Which regulation defines the mandatory procedures that must be included in the MOE?", options: ["Part 66", "Part 147", "Part 145.A.70", "Part M"], correct: 2, info: "MOE procedures are mandated by Part 145.A.70." },
+        { q: "How many categories is the MOE divided into?", options: ["Four", "Five", "Six", "Seven"], correct: 2, info: "The MOE is structured into six defined categories." },
+        { q: "Which of the following is NOT an MOE category?", options: ["Management", "Maintenance Procedures", "Quality System", "Flight Operations"], correct: 3, info: "Flight Operations is not one of the six MOE categories." },
+        { q: "What is the primary function of a Quality System?", options: ["To certify aircraft", "To manage flight schedules", "To plan, execute and improve safe and efficient operations", "To issue licences"], correct: 2, info: "A Quality System integrates processes to ensure safety and efficiency." },
+        { q: "Who must an EASA-approved MRO quality department report to?", options: ["Maintenance Manager", "Base Manager", "Accountable Manager", "Planning Manager"], correct: 2, info: "The quality department must remain independent and answer only to the Accountable Manager." },
+        { q: "Why must the Quality Department remain independent?", options: ["To reduce costs", "To avoid duplication of work", "To ensure objective inspections and audits", "To comply with Part 66"], correct: 2, info: "Independence ensures audits are objective and unbiased." },
+        { q: "What is the primary purpose of an audit?", options: ["To assign blame", "To train staff", "To check conformance to defined rules and procedures", "To approve maintenance tasks"], correct: 2, info: "Audits verify conformance to rules defined in the MOE or CAME." },
+        { q: "Who should carry out an audit?", options: ["The person responsible for the activity", "Any available engineer", "Personnel independent of the function being audited", "The Accountable Manager only"], correct: 2, info: "Audits must be performed independently from the activity being audited." },
+        { q: "What is examined during an audit?", options: ["Individual licences only", "Results, activities, resources and behaviours", "Aircraft technical logs only", "Tool calibration records only"], correct: 1, info: "Audits examine whether activities and resources are being managed effectively." },
+        { q: "Why is error reporting critical in maintenance activities?", options: ["To discipline staff", "To meet commercial targets", "To improve safety through learning and prevention", "To reduce paperwork"], correct: 2, info: "Error reporting enables root cause analysis and safety improvement." },
+        { q: "What is the main purpose of root cause analysis?", options: ["To identify who made the mistake", "To understand why an error occurred", "To remove defective components", "To satisfy audit requirements"], correct: 1, info: "Root cause analysis focuses on understanding how and why errors occur." },
+        { q: "Which training is mandated on a recurrent basis under EASA regulations?", options: ["Type Training only", "Human Factors with SMS", "Language Proficiency", "Line Maintenance Training"], correct: 1, info: "Human Factors and Safety Management System training are mandatory recurrent requirements." },
+        { q: "Which of the following is a mandatory recurrent training requirement?", options: ["Fuel Tank Entry", "EWIS", "Forklift Training", "Rescue Training"], correct: 1, info: "EWIS training is required on a recurrent basis under EASA regulations." },
+        { q: "What evidence is commonly used in a competency-based assessment?", options: ["Shift rosters", "OJT logbooks and competency assessments", "Audit findings", "Training attendance lists"], correct: 1, info: "Competence is demonstrated through OJT and formal assessments." },
+        { q: "Which of the following is NOT a segment of competence?", options: ["Skills", "Knowledge", "Attitude", "Experience"], correct: 3, info: "Competence is defined by skills, knowledge, and attitude." },
+        { q: "What does Line Maintenance refer to?", options: ["Hangar-based heavy checks", "Maintenance completed outside a hangar on in-service aircraft", "Component manufacturing", "Aircraft painting"], correct: 1, info: "Line Maintenance includes scheduled and unscheduled work performed outside the hangar." },
+        { q: "Which task is typically performed by a Line Maintenance team?", options: ["D-checks", "Structural modifications", "Ramp checks", "Aircraft repainting"], correct: 2, info: "Ramp checks are a core Line Maintenance activity." },
+        { q: "Under which approval do Ryanair line engineers operate?", options: ["PAML Part 145", "Ryanair DAC Part 145", "Part M CAMO", "Part 147"], correct: 1, info: "All line engineers operate under Ryanair DAC Part 145 approval." },
+        { q: "What is the primary role of Base or Heavy Maintenance?", options: ["Daily servicing", "Ramp inspections", "Extensive system and structural checks", "Cabin cleaning"], correct: 2, info: "Base Maintenance performs extensive checks on aircraft systems and structures." },
+        { q: "Which authority approval covers Ryanair Base Maintenance facilities?", options: ["Ryanair DAC Part 145", "PAML Part 145", "Part M", "Part 147"], correct: 1, info: "Base Maintenance facilities operate under PAML Part 145 approval." },
+        { q: "What determines a workshop’s repair capability?", options: ["Engineer experience", "Company exposition", "Manufacturer manuals only", "Tool availability"], correct: 1, info: "Workshop capability is defined in the company exposition." },
+        { q: "Who approves a workshop’s capability rating?", options: ["Accountable Manager", "Quality Manager", "Competent Authority", "Training Department"], correct: 2, info: "Workshop capability must be approved by the competent authority." },
+        { q: "Why must workshop areas be secure?", options: ["To reduce costs", "To improve productivity", "To prevent unauthorised access and cross-contamination", "To meet training requirements"], correct: 2, info: "Security prevents contamination and unauthorised access." },
+        { q: "What is the role of the Part 145 Planning Department?", options: ["Aircraft cleaning", "Manpower monitoring and check efficiency review", "Audit scheduling", "Component repair"], correct: 1, info: "The Part 145 Planning Dept manages manpower and reviews maintenance efficiency." },
+        { q: "Which department is responsible for archiving maintenance records?", options: ["Quality Department", "Planning Department", "Document Control Department", "Technical Services"], correct: 2, info: "Document Control ensures accurate storage of maintenance records." },
+        { q: "What is the primary responsibility of the Stores Department?", options: ["Aircraft certification", "Ensuring parts are serviceable and correctly documented", "Staff training", "Maintenance scheduling"], correct: 1, info: "Stores ensures parts are fit for purpose and correctly documented." },
+        { q: "Who controls the Materials Department?", options: ["Accountable Manager", "Director of Engineering", "Director of Purchasing", "Quality Manager"], correct: 2, info: "The Materials Department reports to the Director of Purchasing." },
+        { q: "Which department provides Human Factors and EWIS training?", options: ["Quality Department", "Planning Department", "Training Department", "Technical Services"], correct: 2, info: "The Training Department delivers mandatory Part 145 training." },
+        { q: "What is the main objective of the Aircraft Appearance Department?", options: ["Improve fuel efficiency", "Maintain aircraft airworthiness", "Ensure high presentation standards to customers", "Reduce maintenance costs"], correct: 2, info: "Aircraft appearance influences passenger confidence and maintenance quality." },
+        { q: "Which department is the main interface with aircraft manufacturers?", options: ["Quality Department", "Technical Services Department", "Stores Department", "Planning Department"], correct: 1, info: "Technical Services liaises directly with manufacturers." },
+        { q: "Which Technical Services team manages Airworthiness Directives and MEL?", options: ["Reliability", "Systems", "Airworthiness", "Structures"], correct: 2, info: "The Airworthiness team manages ADs, MEL and configuration control." },
+        { q: "What is the role of the Technical Standards Department?", options: ["Aircraft cleaning", "Regulation implementation and procedural compliance", "Component repair", "Manpower planning"], correct: 1, info: "Technical Standards ensures regulatory compliance and procedure implementation." },
+        { q: "What certificate supports the Certificate of Airworthiness?", options: ["MOE", "ARC", "MEL", "AMP"], correct: 1, info: "The Airworthiness Review Certificate supports the Certificate of Airworthiness." },
+        { q: "What must be completed before an ARC can be issued?", options: ["Flight test only", "Physical survey and records review", "Base maintenance check", "Component overhaul"], correct: 1, info: "ARC issuance requires records review and physical aircraft survey." },
+        { q: "What is the primary function of the IT Department?", options: ["Aircraft software certification", "Network installation and maintenance", "Maintenance planning", "Quality audits"], correct: 1, info: "IT ensures company networks operate smoothly through proper hardware and software support." },
+                        
+
+        { q: "Where is 'Line Maintenance' usually performed?", options: ["Inside a large hangar only", "Outside on in-service aircraft", "At the manufacturer's factory", "In the head office"], correct: 1, info: "LM refers to maintenance completed outside of a hangar on in-service aircraft[cite: 796]." },
+        { q: "What is another name for 'Base Maintenance'?", options: ["Ramp Checks", "Heavy Maintenance", "Soft Maintenance", "Pre-flight checks"], correct: 1, info: "Base Maintenance is also known as Heavy Maintenance[cite: 800]." },
+        { q: "Which facility is NOT listed as a PAML Base Maintenance location?", options: ["Prestwick", "Seville", "Paris", "Kaunas"], correct: 2, info: "The listed sites are Prestwick, Kaunas, Wroclaw, Seville, Hahn, and Shannon[cite: 801]." },
+        { q: "What rating determines what a workshop can or cannot repair?", options: ["Company Exposition Rating", "Employee's Star Rating", "Tooling Size Rating", "The local city council rating"], correct: 0, info: "Workshop capability is rated in a company exposition and approved by authorities[cite: 803]." },
+        { q: "Why must parts in a workshop be properly segregated?", options: ["To look tidy", "To avoid cross-contamination", "To hide them from auditors", "To save space"], correct: 1, info: "Parts must be segregated to avoid cross-contamination[cite: 808]." },
+        { q: "The Planning Dept (CAMO) handles which type of planning?", options: ["Holiday planning", "Short- and long-term aircraft planning", "Catering planning", "Uniform planning"], correct: 1, info: "The Planning Dept carries out short- and long-term planning for the group[cite: 814]." },
+        { q: "Who monitors facility manpower for maintenance checks?", options: ["Quality Dept", "Part 145 Planning Dept", "The Pilot", "Security"], correct: 1, info: "The Part 145 Planning Dept monitors and controls manpower requirements[cite: 818]." },
+        { q: "How long must records for a Certificate of Release to Service be kept?", options: ["1 month", "6 months", "Retained safely while owned by operator", "Forever"], correct: 2, info: "Records must be stored safely while the aircraft is owned by the operator[cite: 822]." },
+        { q: "Who is responsible for verifying maintenance records are accurate before archiving?", options: ["Stores", "Document Control / Tech Records", "Human Resources", "Marketing"], correct: 1, info: "Document Control verifies records before archiving[cite: 823]." },
+        { q: "Which department ensures parts from suppliers are fit for purpose?", options: ["Training", "Stores", "IT", "Ramp Team"], correct: 1, info: "Stores ensures supplied parts are fit for purpose and documented[cite: 825]." },
+        { q: "What determines which area of the Stores a part must live in?", options: ["The part's weight", "The status of the part", "The color of the part", "The manager's preference"], correct: 1, info: "The status of parts determines their location in Stores[cite: 827]." },
+        { q: "Where are the three main stores for Ryanair Line Maintenance located?", options: ["London, Paris, Berlin", "Dublin, Bergamo, Stansted", "Madrid, Rome, Oslo", "Shannon, Kaunas, Seville"], correct: 1, info: "The main LM stores are Dublin, Bergamo, and Stansted[cite: 828]." },
+        { q: "The Materials Dept is under the control of which director?", options: ["Director of Safety", "Director of Purchasing", "Director of Flight Ops", "Director of HR"], correct: 1, info: "It is under the control of the Director of Purchasing[cite: 830]." },
+        { q: "Which department manages 'Type Courses' like NG or MAX?", options: ["Quality", "Training (Part 147)", "Stores", "Planning"], correct: 1, info: "The Training Dept manages Part 147 Type Courses[cite: 831]." },
+        { q: "Which department monitors the fleet for trends in component failure?", options: ["IT", "Reliability", "Stores", "Ramp"], correct: 1, info: "The Reliability department monitors for failure trends[cite: 159]." },
+        { q: "Who performs physical surveys of aircraft for the ARC?", options: ["Security guards", "Airworthiness Review staff", "Flight attendants", "Cleaners"], correct: 1, info: "Airworthiness Review staff conduct records reviews and physical surveys[cite: 167, 168]." },
+        { q: "What does EWIS stand for?", options: ["Emergency Water Interaction System", "Electrical Wiring Interconnection System", "Engine Waste Internal Support", "Electronic Wing Inspection Scheme"], correct: 1, info: "EWIS is Electrical Wiring Interconnection System[cite: 794, 832]." },
+        { q: "What is the primary function of the IT Department?", options: ["To fly drones", "To ensure the network runs smoothly", "To fix engines", "To order food"], correct: 1, info: "Its primary function is ensuring the network runs smoothly[cite: 172]." },
+        { q: "The Technical Standards Dept is responsible for:", options: ["Designing new wings", "Regulation implementation and engineer compliance", "Selling old parts", "Hiring pilots"], correct: 1, info: "They look after regulation implementation and compliance[cite: 163]." },
+        { q: "Which certificate must be kept valid at all times for the aircraft to fly?", options: ["Driving license", "Airworthiness Review Certificate (ARC)", "A library card", "A gym membership"], correct: 1, info: "The CoA must be supported by a valid ARC at all times[cite: 164, 165]." },
+        { q: "What is the primary purpose of the Maintenance Organisation Exposition (MOE)?", options: ["To record completed maintenance tasks", "To detail how an MRO conducts maintenance in compliance with regulations", "To certify aircraft airworthiness", "To manage personnel licensing"], correct: 1, info: "The MOE explains to the authority how the MRO will conduct maintenance on aircraft under its care." },
+        { q: "Which organisation must write, submit, and keep an MOE updated?", options: ["Continuing Airworthiness Management Organisation", "Approved Training Organisation", "Maintenance Repair Organisation", "Design Organisation"], correct: 2, info: "An organisation must maintain an MOE to obtain and retain MRO approval." },
+        { q: "Which regulation defines the mandatory procedures that must be included in the MOE?", options: ["Part 66", "Part 147", "Part 145.A.70", "Part M"], correct: 2, info: "MOE procedures are mandated by Part 145.A.70." },
+        { q: "How many categories is the MOE divided into?", options: ["Four", "Five", "Six", "Seven"], correct: 2, info: "The MOE is structured into six defined categories." },
+        { q: "Which of the following is NOT an MOE category?", options: ["Management", "Maintenance Procedures", "Quality System", "Flight Operations"], correct: 3, info: "Flight Operations is not one of the six MOE categories." },
+        { q: "What is the primary function of a Quality System?", options: ["To certify aircraft", "To manage flight schedules", "To plan, execute and improve safe and efficient operations", "To issue licences"], correct: 2, info: "A Quality System integrates processes to ensure safety and efficiency." },
+        { q: "Who must an EASA-approved MRO quality department report to?", options: ["Maintenance Manager", "Base Manager", "Accountable Manager", "Planning Manager"], correct: 2, info: "The quality department must remain independent and answer only to the Accountable Manager." },
+        { q: "Why must the Quality Department remain independent?", options: ["To reduce costs", "To avoid duplication of work", "To ensure objective inspections and audits", "To comply with Part 66"], correct: 2, info: "Independence ensures audits are objective and unbiased." },
+        { q: "What is the primary purpose of an audit?", options: ["To assign blame", "To train staff", "To check conformance to defined rules and procedures", "To approve maintenance tasks"], correct: 2, info: "Audits verify conformance to rules defined in the MOE or CAME." },
+        { q: "Who should carry out an audit?", options: ["The person responsible for the activity", "Any available engineer", "Personnel independent of the function being audited", "The Accountable Manager only"], correct: 2, info: "Audits must be performed independently from the activity being audited." },
+        { q: "What is examined during an audit?", options: ["Individual licences only", "Results, activities, resources and behaviours", "Aircraft technical logs only", "Tool calibration records only"], correct: 1, info: "Audits examine whether activities and resources are being managed effectively." },
+        { q: "Why is error reporting critical in maintenance activities?", options: ["To discipline staff", "To meet commercial targets", "To improve safety through learning and prevention", "To reduce paperwork"], correct: 2, info: "Error reporting enables root cause analysis and safety improvement." },
+        { q: "What is the main purpose of root cause analysis?", options: ["To identify who made the mistake", "To understand why an error occurred", "To remove defective components", "To satisfy audit requirements"], correct: 1, info: "Root cause analysis focuses on understanding how and why errors occur." },
+        { q: "Which training is mandated on a recurrent basis under EASA regulations?", options: ["Type Training only", "Human Factors with SMS", "Language Proficiency", "Line Maintenance Training"], correct: 1, info: "Human Factors and Safety Management System training are mandatory recurrent requirements." },
+        { q: "Which of the following is a mandatory recurrent training requirement?", options: ["Fuel Tank Entry", "EWIS", "Forklift Training", "Rescue Training"], correct: 1, info: "EWIS training is required on a recurrent basis under EASA regulations." },
+        { q: "What evidence is commonly used in a competency-based assessment?", options: ["Shift rosters", "OJT logbooks and competency assessments", "Audit findings", "Training attendance lists"], correct: 1, info: "Competence is demonstrated through OJT and formal assessments." },
+        { q: "Which of the following is NOT a segment of competence?", options: ["Skills", "Knowledge", "Attitude", "Experience"], correct: 3, info: "Competence is defined by skills, knowledge, and attitude." },
+        { q: "What does Line Maintenance refer to?", options: ["Hangar-based heavy checks", "Maintenance completed outside a hangar on in-service aircraft", "Component manufacturing", "Aircraft painting"], correct: 1, info: "Line Maintenance includes scheduled and unscheduled work performed outside the hangar." },
+        { q: "Which task is typically performed by a Line Maintenance team?", options: ["D-checks", "Structural modifications", "Ramp checks", "Aircraft repainting"], correct: 2, info: "Ramp checks are a core Line Maintenance activity." },
+        { q: "Under which approval do Ryanair line engineers operate?", options: ["PAML Part 145", "Ryanair DAC Part 145", "Part M CAMO", "Part 147"], correct: 1, info: "All line engineers operate under Ryanair DAC Part 145 approval." },
+        { q: "What is the primary role of Base or Heavy Maintenance?", options: ["Daily servicing", "Ramp inspections", "Extensive system and structural checks", "Cabin cleaning"], correct: 2, info: "Base Maintenance performs extensive checks on aircraft systems and structures." },
+        { q: "Which authority approval covers Ryanair Base Maintenance facilities?", options: ["Ryanair DAC Part 145", "PAML Part 145", "Part M", "Part 147"], correct: 1, info: "Base Maintenance facilities operate under PAML Part 145 approval." },
+        { q: "What determines a workshop’s repair capability?", options: ["Engineer experience", "Company exposition", "Manufacturer manuals only", "Tool availability"], correct: 1, info: "Workshop capability is defined in the company exposition." },
+        { q: "Who approves a workshop’s capability rating?", options: ["Accountable Manager", "Quality Manager", "Competent Authority", "Training Department"], correct: 2, info: "Workshop capability must be approved by the competent authority." },
+        { q: "Why must workshop areas be secure?", options: ["To reduce costs", "To improve productivity", "To prevent unauthorised access and cross-contamination", "To meet training requirements"], correct: 2, info: "Security prevents contamination and unauthorised access." },
+        { q: "What is the role of the Part 145 Planning Department?", options: ["Aircraft cleaning", "Manpower monitoring and check efficiency review", "Audit scheduling", "Component repair"], correct: 1, info: "The Part 145 Planning Dept manages manpower and reviews maintenance efficiency." },
+        { q: "Which department is responsible for archiving maintenance records?", options: ["Quality Department", "Planning Department", "Document Control Department", "Technical Services"], correct: 2, info: "Document Control ensures accurate storage of maintenance records." },
+        { q: "What is the primary responsibility of the Stores Department?", options: ["Aircraft certification", "Ensuring parts are serviceable and correctly documented", "Staff training", "Maintenance scheduling"], correct: 1, info: "Stores ensures parts are fit for purpose and correctly documented." },
+        { q: "Who controls the Materials Department?", options: ["Accountable Manager", "Director of Engineering", "Director of Purchasing", "Quality Manager"], correct: 2, info: "The Materials Department reports to the Director of Purchasing." },
+        { q: "Which department provides Human Factors and EWIS training?", options: ["Quality Department", "Planning Department", "Training Department", "Technical Services"], correct: 2, info: "The Training Department delivers mandatory Part 145 training." },
+        { q: "What is the main objective of the Aircraft Appearance Department?", options: ["Improve fuel efficiency", "Maintain aircraft airworthiness", "Ensure high presentation standards to customers", "Reduce maintenance costs"], correct: 2, info: "Aircraft appearance influences passenger confidence and maintenance quality." },
+        { q: "Which department is the main interface with aircraft manufacturers?", options: ["Quality Department", "Technical Services Department", "Stores Department", "Planning Department"], correct: 1, info: "Technical Services liaises directly with manufacturers." },
+        { q: "Which Technical Services team manages Airworthiness Directives and MEL?", options: ["Reliability", "Systems", "Airworthiness", "Structures"], correct: 2, info: "The Airworthiness team manages ADs, MEL and configuration control." },
+        { q: "What is the role of the Technical Standards Department?", options: ["Aircraft cleaning", "Regulation implementation and procedural compliance", "Component repair", "Manpower planning"], correct: 1, info: "Technical Standards ensures regulatory compliance and procedure implementation." },
+        { q: "What certificate supports the Certificate of Airworthiness?", options: ["MOE", "ARC", "MEL", "AMP"], correct: 1, info: "The Airworthiness Review Certificate supports the Certificate of Airworthiness." },
+        { q: "What must be completed before an ARC can be issued?", options: ["Flight test only", "Physical survey and records review", "Base maintenance check", "Component overhaul"], correct: 1, info: "ARC issuance requires records review and physical aircraft survey." },
+        { q: "What is the primary function of the IT Department?", options: ["Aircraft software certification", "Network installation and maintenance", "Maintenance planning", "Quality audits"], correct: 1, info: "IT ensures company networks operate smoothly through proper hardware and software support." },
+
+        { q: "What is the most popular square drive size in aviation maintenance?", options: ["1/2 inch", "1/4 inch and 3/8 inch", "1 inch", "3/4 inch"], correct: 1, info: "The 1/4-inch and 3/8-inch drives are the most popular[cite: 217]." },
+        { q: "Which screwdriver is designed for a specific purpose and is fixed?", options: ["Reversible-blade", "Solid head", "Offset", "Ratchet"], correct: 1, info: "The solid head screwdriver is fixed and designed for a specific purpose[cite: 195]." },
+        { q: "Why do powered screwdrivers have adjustable torque?", options: ["To go faster", "To prevent over-torquing and damage", "To save battery", "To make more noise"], correct: 1, info: "Pre-set torque prevents screws from being over-torqued[cite: 201]." },
+        { q: "What is the best tool for removing fasteners from an ergonomic standpoint?", options: ["Ratchet wrench", "Speed brace", "Pliers", "Hammer"], correct: 1, info: "The speed brace is one of the best ergonomic tools for fasteners[cite: 238]." },
+        { q: "What type of scraper is approved for removing sealant?", options: ["Metal", "Plastic", "Wood", "Glass"], correct: 1, info: "Only approved plastic scrapers can be used to avoid scratching[cite: 240]." },
+        { q: "What tool is ideal for separating wire or removing O-rings?", options: ["Screwdriver", "Pick", "Hammer", "Wrench"], correct: 1, info: "Picks are ideal for separating wire and removing O-rings[cite: 241]." },
+        { q: "A torque wrench may be out of calibration if the Acratork figure varies by more than:", options: ["1%", "2%", "5%", "10%"], correct: 2, info: "A variance of more than 5% indicates it may be out of calibration[cite: 267]." },
+        { q: "What form is filled out if company tooling breaks?", options: ["Form 1", "PAM Form 100 or RA937US", "MOE Page 1", "AOC Certificate"], correct: 1, info: "Damaged company tooling requires a PAM Form 100 or RA937US[cite: 269]." },
+        { q: "What tool is used to reach areas that stands cannot reach?", options: ["Ladder", "MEWP (Scissor lift)", "Rope", "Jetpack"], correct: 1, info: "MEWP vehicles are used to reach areas stands cannot[cite: 716]." },
+        { q: "What is a 'Tripod Jack' used for?", options: ["Lifting a wheel only", "Raising the whole airplane", "Holding a door open", "Moving a battery"], correct: 1, info: "Tripod jacks are used to raise the whole airplane[cite: 255, 256]." },
+        { q: "Where are the lifting points usually located on a B737 for tripod jacks?", options: ["The tail", "The cockpit", "Lower part of the wing", "The nose"], correct: 2, info: "Lifting points are usually in the lower part of the wing[cite: 257]." },
+        { q: "In socket sets, what refers to the number of points in the opening?", options: ["Torque", "Drive size", "Points (e.g., six- or twelve-point)", "Shank length"], correct: 2, info: "Sockets typically have six- or twelve-point openings[cite: 214]." },
+        { q: "What prevents a powered screwdriver from over-torquing once reached?", options: ["A light turns on", "A chuck slips", "It explodes", "The battery falls out"], correct: 1, info: "A chuck slips inside the screwdriver once pre-set torque is reached[cite: 201]." },
+        { q: "Why must caution be used with screw guns and fastener alignment?", options: ["To save electricity", "To prevent deformation of the fastener head", "To keep the hangar quiet", "To speed up the task"], correct: 1, info: "Incorrect alignment can result in deformation of the fastener head[cite: 202]." },
+        { q: "Which socket size is available for extremely large work?", options: ["1/4 inch", "1/2 inch", "Up to 2 1/2 inches", "3/8 inch"], correct: 2, info: "Socket wrenches are available in drives as large as 2 1/2 inches[cite: 219]." },
+        { q: "What should calibration records identify as a minimum?", options: ["The color of the tool", "Identification of equipment and results obtained", "The price of the tool", "The name of the store"], correct: 1, info: "Records must contain equipment ID, results, and limitations[cite: 253]." },
+        { q: "Hangar tooling includes items NOT in mechanic toolkits due to:", options: ["Color", "High value, size, or calibration needs", "Weight", "Age"], correct: 1, info: "Hangar tooling is kept separate due to value, size, or calibration needs[cite: 253]." },
+        { q: "When using a speed brace, what is the initial action for fasteners?", options: ["Tightening only", "Slacking them off", "Cleaning them", "Oiling them"], correct: 1, info: "It is recommended to initially slacken fasteners with a speed brace[cite: 238]." },
+        { q: "Sockets have a square hole in one end for what?", options: ["A screw", "A drive handle", "A finger", "A light"], correct: 1, info: "The square hole is for the drive handle[cite: 214]." },
+        { q: "Which tool resembles a bow type brace?", options: ["Ratchet", "Speed brace", "Screwdriver", "Allen key"], correct: 1, info: "A speed brace resembles a bow type brace[cite: 235]." },
+        { q: "What is the primary purpose of personal identification marking on hand tools?", options: ["To meet audit requirements", "To prevent corrosion", "To support tool control and accountability", "To improve ergonomics"], correct: 2, info: "Personal marking supports tool control and ensures accountability for tooling." },
+        { q: "When must a tool control form be signed?", options: ["Once per week", "At the start of each shift only", "At the beginning and end of every shift", "Only during audits"], correct: 2, info: "Tool control forms confirm that all tooling is accounted for at shift start and end." },
+        { q: "What is the main risk associated with misuse of impact tools?", options: ["Loss of calibration", "Damage to aircraft components and personal injury", "Tool corrosion", "Incorrect torque application"], correct: 1, info: "Improper use of impact tools can damage components and injure personnel." },
+        { q: "What PPE should always be worn when using hammers or mallets?", options: ["Hearing protection", "Eye and face protection", "Respiratory protection", "Cut-resistant gloves only"], correct: 1, info: "Eye and face protection is required due to the risk of flying debris." },
+        { q: "Which hammer face is used to peen rivets in commercial sheet metal work?", options: ["Flat face", "Ball peen", "Rubber face", "Plastic face"], correct: 1, info: "The ball end of a ball peen hammer is used for peening rivets." },
+        { q: "Why are soft-faced mallets used on aluminium alloys?", options: ["To increase impact force", "To prevent surface damage", "To improve accuracy", "To reduce noise"], correct: 1, info: "Soft-faced mallets prevent marring and damage to soft aluminium alloys." },
+        { q: "What is the purpose of removing a mushroomed punch head?", options: ["Improve accuracy", "Reduce weight", "Prevent splitting or chipping", "Increase striking force"], correct: 2, info: "Restoring a crowned shape reduces the risk of punch failure." },
+        { q: "Which punch is used to transfer hole locations onto sheet metal?", options: ["Centre punch", "Pin punch", "Transfer punch", "Starting punch"], correct: 2, info: "Transfer punches are used to mark exact locations for drilling." },
+        { q: "What is the typical point angle of a centre punch?", options: ["30 degrees", "45 degrees", "60 degrees", "90 degrees"], correct: 2, info: "Centre punches are ground to approximately 60 degrees." },
+        { q: "Which punch is most commonly used to remove rivet shanks?", options: ["Transfer punch", "Centre punch", "Pin punch", "Starting punch"], correct: 2, info: "Pin punches are used to drive rivet shanks from holes." },
+        { q: "What is the correct sequence when removing a rivet?", options: ["Punch shank first", "Pry head off then drill", "Drill head then remove shank", "Strike shank directly"], correct: 2, info: "The rivet head is drilled and removed before punching out the shank." },
+        { q: "What is the primary function of interlocking-joint (water pump) pliers?", options: ["Cut wire", "Hold and apply high gripping force", "Twist safety wire", "Remove fasteners"], correct: 1, info: "Their adjustable jaws and long handles allow high gripping force." },
+        { q: "What feature allows Vice-Grip pliers to remain clamped when handles are released?", options: ["Spring tension", "Ratchet teeth", "Toggle action mechanism", "Friction jaws"], correct: 2, info: "A toggle action locks the jaws until released." },
+        { q: "Which pliers are primarily used for twisting safety wire?", options: ["Needle nose pliers", "Duck bill pliers", "Water pump pliers", "Safety wire pliers"], correct: 3, info: "Safety wire pliers include an integrated twisting mechanism." },
+        { q: "What is the advantage of flush cutters?", options: ["Increased leverage", "Reduced hand fatigue", "Leave a smooth flush finish", "Cut hardened bolts"], correct: 2, info: "Flush cutters leave a smooth surface without protrusions." },
+        { q: "What is the purpose of Cannon plug pliers?", options: ["Crimp wiring", "Install and remove electrical connectors safely", "Strip insulation", "Cut safety wire"], correct: 1, info: "They allow safe installation and removal of electrical connectors." },
+        { q: "What feature prevents screw guns from over-torquing fasteners?", options: ["Reverse rotation", "Torque-limiting clutch", "Speed control", "Auto-stop motor"], correct: 1, info: "The clutch slips when the preset torque is reached." },
+        { q: "Which screwdriver type is designed for recessed-head screws?", options: ["Slot screwdriver", "Solid head screwdriver", "Reversible-blade screwdriver", "Ratchet screwdriver"], correct: 2, info: "Reversible screwdrivers include a recessed-head blade." },
+        { q: "What minimum percentage of a slotted screw head should a screwdriver blade fill?", options: ["50%", "60%", "75%", "100%"], correct: 2, info: "Proper blade fit reduces the risk of damaging fasteners." },
+        { q: "Which cross-point screwdriver has straight-sided slots?", options: ["Phillips", "Pozidriv", "Reed and Prince", "Torx"], correct: 2, info: "Reed and Prince screws have straight-sided cross slots." },
+        { q: "Why are box-end spanners preferred for very tight nuts?", options: ["They are lighter", "They apply torque evenly without spreading", "They fit all sizes", "They reduce tool wear"], correct: 1, info: "Box-end spanners reduce jaw spreading and slippage." },
+        { q: "What is the primary advantage of a combination spanner?", options: ["Reduced cost", "Improved reach", "Both box and open-end functions", "Lower torque application"], correct: 2, info: "Combination spanners allow breaking torque and fast removal." },
+        { q: "Which socket drive sizes are most commonly used in aviation maintenance?", options: ["1/2 and 3/4 inch", "3/4 and 1 inch", "1/4 and 3/8 inch", "Metric only"], correct: 2, info: "1/4-inch and 3/8-inch drives are most common." },
+        { q: "What socket type is used when access prevents use of standard wrenches?", options: ["Deep socket", "Crowfoot socket", "Impact socket", "Spline socket"], correct: 1, info: "Crowfoot sockets allow access in restricted locations." },
+        { q: "What tool should be used instead of extending a breaker bar with a pipe?", options: ["Speed brace", "Next larger drive size", "Ratchet adapter", "Torque wrench"], correct: 1, info: "Using a larger drive size is safer than extending leverage." },
+        { q: "Why must only approved plastic scrapers be used on aircraft surfaces?", options: ["To reduce cost", "To prevent scratching or substrate damage", "To meet ergonomic standards", "To improve cleaning speed"], correct: 1, info: "Metal scrapers can damage aircraft surfaces." },
+        { q: "Which tool should never be used to remove sealant from aircraft surfaces?", options: ["Plastic scraper", "Approved solvent", "Pick", "Soft brush"], correct: 2, info: "Picks can damage aircraft surfaces." },
+        { q: "Which regulation requires calibration of tools where necessary?", options: ["Part 66", "Part 147", "Part 145", "Part M"], correct: 2, info: "Part 145 mandates tool and equipment calibration." },
+        { q: "What must be checked before using a calibrated tool?", options: ["Manufacturer name", "Calibration sticker due date", "Tool weight", "User signature"], correct: 1, info: "Tools must not be used if out of calibration." },
+        { q: "Which fluid is used in aircraft tripod jack hydraulic systems?", options: ["SKYDROL", "MIL-PRF-5606", "Engine oil", "Water-glycol"], correct: 1, info: "Aircraft jacks use MIL-PRF-5606 mineral hydraulic fluid." },
+        { q: "What is the purpose of a jack safety nut?", options: ["Increase lifting speed", "Provide mechanical load support", "Improve stability during towing", "Prevent fluid contamination"], correct: 1, info: "The safety nut carries the load mechanically after lifting." },
+        { q: "What wind speed limit applies when jacking aircraft outside?", options: ["20 km/h", "25 km/h", "35 km/h", "45 km/h"], correct: 2, info: "Aircraft must not be jacked outside above 35 km/h wind speed." },
+        { q: "What must be installed before jacking an aircraft?", options: ["Wheel chocks only", "Correct downlock pins", "Parking brake", "Ground power"], correct: 1, info: "Downlock pins ensure landing gear safety during jacking." },
+        { q: "What tool is used to lift an aircraft wheel and brake assembly?", options: ["Tripod jack", "Axle jack", "Wheel/brake change dolly", "Shock strut jack"], correct: 2, info: "Wheel and brake dollies allow safe lifting and transport." },
+        { q: "What is the purpose of the Acratork system?", options: ["Apply torque", "Verify torque wrench accuracy", "Calibrate hydraulic jacks", "Measure bolt stretch"], correct: 1, info: "Acratork verifies actual torque output." },
+        { q: "What torque deviation indicates a torque wrench may be out of calibration?", options: ["2%", "3%", "5%", "10%"], correct: 2, info: "More than ±5% deviation indicates possible mis-calibration." },
+        { q: "What form must be completed if company tooling is damaged?", options: ["MOE amendment", "PAM Form 100 or RA937US", "Audit finding report", "Tech log entry only"], correct: 1, info: "Damaged tooling must be formally reported for repair or replacement." },
+
+        { q: "What is a critical objective for an aircraft engineer regarding configuration?", options: ["Modifying it", "Maintaining a configuration free of dirt and grime", "Painting it red", "Increasing its weight"], correct: 1, info: "Maintaining a clean configuration is a critical objective[cite: 272, 273]." },
+        { q: "What is the primary purpose of cleaning?", options: ["To look good for photos", "To prolong the life of the machine", "To use up spare time", "To make the aircraft faster"], correct: 1, info: "Cleaning is intended to prolong the life of the machine[cite: 274]." },
+        { q: "What can mud and grease hide on a landing gear fitting?", options: ["The part number", "Cracks", "The color", "The size"], correct: 1, info: "Mud and grease can easily hide cracks in fittings and skin[cite: 275, 276]." },
+        { q: "Dust and grit can cause what to happen to hinge fittings?", options: ["They get stronger", "They wear excessively", "They turn into metal", "They disappear"], correct: 1, info: "Dust and grit cause hinge fittings to wear excessively[cite: 276]." },
+        { q: "What practice prevents the build-up of waste during maintenance?", options: ["Cleaning at the end of the year", "Clean-as-you-go", "Hiring a cleaning crew", "Ignoring it"], correct: 1, info: "Clean-as-you-go ensures waste cannot build up[cite: 290]." },
+        { q: "Who is responsible for reinstating the work area upon completion?", options: ["The cleaners", "The supervisor", "ALL personnel involved in the activity", "The pilots"], correct: 2, info: "All personnel are responsible for reinstating the work area[cite: 292]." },
+        { q: "Which document should be consulted for cleaning methods?", options: ["The MOE", "SOPM TASK 20-30-00", "The Pilot's manual", "The local newspaper"], correct: 1, info: "Consult SOPM TASK 20-30-00 for the correct cleaning method[cite: 294]." },
+        { q: "Grease acts as a natural adhesive for what?", options: ["Water", "Dirt and grime", "Air", "Paint"], correct: 1, info: "Grease naturally collects dirt and grime, acting as an adhesive[cite: 296]." },
+        { q: "What is used with a soft bristle brush to remove combustible material in EWIS?", options: ["A hammer", "A vacuum", "Water", "Oil"], correct: 1, info: "A vacuum is used with a soft bristle brush for EWIS cleaning[cite: 303]." },
+        { q: "What gas can be used to gently remove contaminants from EWIS?", options: ["Oxygen", "Dry nitrogen or clean dry air", "Acetylene", "Carbon dioxide"], correct: 1, info: "Dry nitrogen or clean dry air may be used[cite: 304]." },
+        { q: "What type of brush retainers should be used for cleaning EWIS?", options: ["Metallic", "Non-metallic", "Glass", "Lead"], correct: 1, info: "Brushes should have non-metallic retainers[cite: 305]." },
+        { q: "Which is a sign of EWIS degradation?", options: ["New wiring", "Lacing tape missing", "Shiny connectors", "Tight bundles"], correct: 1, info: "Missing lacing tape is an example of detectable degradation[cite: 307]." },
+        { q: "What protective material is used for liquids during maintenance?", options: ["Cardboard", "Paper", "Plastic sheeting", "Wood"], correct: 2, info: "Plastic sheeting is used for protecting against liquids[cite: 308]." },
+        { q: "What type of tape is used to attach covers for debris?", options: ["Vinyl tape", "Red tape", "Masking tape", "Duct tape"], correct: 2, info: "Masking tape is used for debris covers[cite: 310]." },
+        { q: "What tape is used for attaching liquid protection covers?", options: ["Masking tape", "Vinyl tape", "Cellotape", "Paper tape"], correct: 1, info: "Vinyl tape is used for liquid protection[cite: 310]." },
+        { q: "You must NOT tape protective covers to which component?", options: ["The fuselage", "The wing", "EWIS", "The wheels"], correct: 2, info: "Ensure you do not tape the cover to any EWIS[cite: 311]." },
+        { q: "What should be done with temporary covers when maintenance is finished?", options: ["Leave them there", "Paint them", "Carefully remove them", "Burn them"], correct: 2, info: "Carefully remove the temporary protective covers[cite: 312]." },
+        { q: "FOD becoming an acceptable hazard is a result of what attitude?", options: ["Cleaning as you go", "I didn't make the mess, so I'm not cleaning it", "Safety first", "Reporting spills"], correct: 1, info: "The attitude of not cleaning others' messes allows FOD to build up[cite: 289]." },
+        { q: "Excessive grease on a component will ultimately:", options: ["Make it last forever", "Reduce its lifespan", "Make it faster", "Change its color"], correct: 1, info: "Excessive grease reduces the lifespan by collecting FOD[cite: 296]." },
+        { q: "What should you use to reinstate the work area?", options: ["Proper PPE and cleaning material", "A leaf blower", "Your hands only", "Nothing"], correct: 0, info: "Always use proper PPE and cleaning materials[cite: 294]." },
+        { q: "What is the primary purpose of cleaning aircraft components?", options: ["Improve appearance only", "Reduce maintenance time", "Prolong the life of the aircraft", "Meet customer expectations"], correct: 2, info: "Cleaning prevents wear, corrosion, and damage, extending aircraft service life." },
+        { q: "Which hazard can dirt and grease hide on aircraft structures?", options: ["Incorrect fastener torque", "Cracks and damage", "Electrical faults", "Hydraulic leaks only"], correct: 1, info: "Dirt and grease can conceal cracks and structural defects." },
+        { q: "What effect does dirt on an aircraft’s outer surface have?", options: ["Improves aerodynamic stability", "Reduces flying speed and adds weight", "Increases fuel efficiency", "Has no operational impact"], correct: 1, info: "Surface contamination increases drag and weight." },
+        { q: "Why is loose dirt inside an aircraft dangerous?", options: ["It damages paint", "It increases noise levels", "It can cause injury or accidents", "It blocks ventilation only"], correct: 2, info: "Loose debris can injure personnel or interfere with flight operations." },
+        { q: "What should be done to salt water contamination on aircraft surfaces?", options: ["Allow to dry", "Wipe with cloth only", "Wash off immediately", "Apply grease"], correct: 2, info: "Salt water causes severe corrosion and must be removed immediately." },
+        { q: "What must be checked before starting any cleaning task?", options: ["Tool calibration status", "Surrounding area for FOD", "Weather conditions", "Electrical load"], correct: 1, info: "The work area must be free from potential FOD." },
+        { q: "What does FOD stand for?", options: ["Foreign Object Damage", "Foreign Operational Defect", "Foreign Object Debris", "Flight Operations Debris"], correct: 2, info: "FOD refers to debris that can damage aircraft or equipment." },
+        { q: "Which of the following is a consequence of FOD?", options: ["Improved efficiency", "Equipment damage and injury", "Reduced inspection time", "Lower maintenance cost"], correct: 1, info: "FOD poses safety, quality, and operational risks." },
+        { q: "Who is responsible for FOD prevention?", options: ["Quality department only", "Supervisors only", "All engineering staff", "Stores personnel only"], correct: 2, info: "FOD prevention is a shared responsibility." },
+        { q: "What philosophy helps prevent FOD accumulation?", options: ["Tool control", "Clean-as-you-go", "Task rotation", "Independent inspection"], correct: 1, info: "Clean-as-you-go prevents waste build-up." },
+        { q: "Which document should be consulted to determine the correct cleaning method?", options: ["MOE", "AMM only", "SOPM TASK 20-30-00", "CAME"], correct: 2, info: "SOPM TASK 20-30-00 defines approved cleaning methods." },
+        { q: "Why should excess grease be removed after lubrication?", options: ["To save grease", "To prevent corrosion", "To avoid accelerated wear", "To reduce cleaning time"], correct: 2, info: "Excess grease attracts dirt and increases wear." },
+        { q: "What is the correct rule when preparing to grease a component?", options: ["Clean-Grease-Clean", "Grease-Grease-Clean", "Grease-Clean-Grease", "Clean-Inspect-Grease"], correct: 2, info: "Old grease must be removed before new grease is applied." },
+        { q: "Why must pipes be cleaned before installation?", options: ["To improve appearance", "To remove paint residue", "To prevent system malfunction", "To meet documentation requirements"], correct: 2, info: "Contamination can cause system wear and failure." },
+        { q: "What additional process is required for oxygen system pipes?", options: ["High-pressure testing", "Ultrasonic inspection", "Approved degreasing", "Paint removal"], correct: 2, info: "Oil or grease in oxygen systems can cause explosions." },
+        { q: "What should be done if a cleaned pipe is not installed immediately?", options: ["Leave open", "Wrap in tape", "Blank the ends", "Apply grease"], correct: 2, info: "Blanking prevents contamination." },
+        { q: "Which material must NOT be used to blank pipes?", options: ["Approved plugs", "Standard blanks", "Tape or rag", "Specification plugs"], correct: 2, info: "Rags and tape can detach and contaminate systems." },
+        { q: "How should surplus grease be removed from bearings before inspection?", options: ["Immersion in solvent", "Dry compressed air", "Water wash", "Manual scraping"], correct: 1, info: "Dry compressed air assists in removing grease safely." },
+        { q: "Why must bearings be lightly oiled after cleaning?", options: ["Improve lubrication", "Prevent corrosion", "Ease installation", "Reduce friction"], correct: 1, info: "Light oiling protects against corrosion." },
+        { q: "How should aircraft control cables be cleaned?", options: ["Immersed in solvent", "Steam cleaned", "Wiped with a dry cloth", "Pressure washed"], correct: 2, info: "Solvents remove internal lubrication and reduce cable life." },
+        { q: "Which manuals govern EWIS cleaning?", options: ["MOE and CAME", "AMM and SWPM", "SRM and IPC", "FIM and WDM"], correct: 1, info: "Boeing AMM and SWPM define EWIS cleaning practices." },
+        { q: "What must be done before cleaning electrical wiring harnesses?", options: ["Disconnect battery only", "Open relevant circuit breakers and switches", "Remove connectors", "Apply protective grease"], correct: 1, info: "Electrical isolation prevents damage and hazards." },
+        { q: "Which cleaning method is recommended for removing combustible debris near wiring?", options: ["High-pressure air", "Metal brushes", "Vacuum with soft bristle brush", "Solvent immersion"], correct: 2, info: "Vacuuming reduces fire risk without damaging wiring." },
+        { q: "Which solvent may be used on wire harnesses?", options: ["Any approved solvent", "Water-based cleaners only", "Only solvents specified in SWPM", "Degreasers"], correct: 2, info: "Unapproved solvents may damage insulation." },
+        { q: "Which is an example of EWIS degradation?", options: ["Paint peeling", "Missing lacing tape", "Loose panels", "Hydraulic leaks"], correct: 1, info: "Missing ties or lacing indicate EWIS degradation." },
+        { q: "Why are temporary protective covers installed during maintenance?", options: ["Improve cleanliness only", "Prevent contamination and damage", "Reduce inspection time", "Improve ergonomics"], correct: 1, info: "Protective covers shield EWIS and structures from debris and fluids." },
+        { q: "Which tape should be used to secure covers for liquid protection?", options: ["Masking tape", "Electrical tape", "Vinyl tape", "Duct tape"], correct: 2, info: "Vinyl tape is suitable for liquids." },
+        { q: "What must be verified after removing protective covers?", options: ["Torque values", "No contaminants spilled and EWIS undamaged", "Calibration status", "Paint condition"], correct: 1, info: "Final checks ensure safety and cleanliness." },
+        { q: "What is the purpose of safety tying?", options: ["Improve appearance", "Prevent vibration loosening", "Seal components", "Reduce maintenance time"], correct: 1, info: "Safety tying prevents fasteners from loosening in service." },
+        { q: "Can locking wire be reused?", options: ["Yes, if undamaged", "Yes, once only", "No, it must always be renewed", "Only with approval"], correct: 2, info: "Lock wire must never be reused." },
+        { q: "What is the minimum angle of approach for locking wire?", options: ["30 degrees", "45 degrees", "60 degrees", "90 degrees"], correct: 1, info: "A minimum of 45° ensures effective locking." },
+        { q: "How many fasteners may be safety wired in series if spaced 4–6 inches apart?", options: ["One", "Two", "Three", "Four"], correct: 2, info: "No more than three fasteners may be wired in series." },
+        { q: "Which wire material should be used when safety wiring components touching magnesium?", options: ["Steel wire", "Copper wire", "5056 aluminium alloy wire", "Brass wire"], correct: 2, info: "5056 aluminium wire prevents galvanic corrosion." },
+        { q: "What is unique about safety wiring for emergency equipment?", options: ["High tensile strength", "Multiple twists", "Must be breakable by hand", "Double locking"], correct: 2, info: "Emergency seals are indication-only and must be hand-breakable." },
+        { q: "What diameter copper wire is used for safety-of-flight emergency equipment?", options: ["0.010 inch", "0.015 inch", "0.020 inch", "0.032 inch"], correct: 2, info: "Emergency equipment uses 0.020-inch copper wire." },
+
+        { q: "The wire on emergency equipment is installed to indicate:", options: ["The component is broken", "The component is sealed/not actuated", "It is high pressure", "It is expensive"], correct: 1, info: "It indicates the component is sealed or has not been actuated[cite: 324]." },
+        { q: "How must a wire seal on emergency equipment be broken?", options: ["With pliers", "By hand without tools", "With a knife", "It cannot be broken"], correct: 1, info: "It must be possible to break the wire seal by hand[cite: 325]." },
+        { q: "How many twists per inch should 0.032” safety wire have?", options: ["2 to 5", "7 to 10", "12 to 15", "20+"], correct: 1, info: "Standard 0.032' wire should have seven to ten twists per inch[cite: 327]." },
+        { q: "Safety wire should be installed so the loop tends to:", options: ["Loosen the fastener", "Tighten the fastener", "Break the fastener", "Do nothing"], correct: 1, info: "It should be twisted in a manner that tends to tighten the fastener[cite: 327]." },
+        { q: "What is a 'cotter pin' used for?", options: ["Sanding", "Securing bolts, screws, and shafts", "Painting", "Cleaning"], correct: 1, info: "Cotter pins secure bolts, screws, pins, and shafts[cite: 327]." },
+        { q: "Can cotter pins be re-used on aircraft?", options: ["Yes, once", "Yes, if they look okay", "Never", "Always"], correct: 2, info: "Cotter pins, like safety wire, should never be re-used[cite: 327, 328]." },
+        { q: "What determines the size of the cotter pin selected?", options: ["The length of the bolt", "The largest size that fits the hole/slots", "The weight of the nut", "Random choice"], correct: 1, info: "Select the largest size that fits the hole and castellated nut slots[cite: 328]." },
+        { q: "Tab washers are ideal for what type of environment?", options: ["Office", "Harsh environments with heat or vibration", "Under water", "Quiet areas"], correct: 1, info: "They are ideal for harsh environments with heat or vibration[cite: 338]." },
+        { q: "When securing oil caps, where should the safety wire be anchored?", options: ["To the wing", "To an adjacent fillister-head screw", "To the landing gear", "To the pilot's seat"], correct: 1, info: "Anchoring should be to an adjacent fillister-head screw[cite: 339]." },
+        { q: "What should NOT be done to align safety-wire holes?", options: ["Drilling new holes", "Loosening or tightening a properly tightened nut", "Using a different wire", "Cleaning the nut"], correct: 1, info: "Do not loosen or tighten a properly tightened nut to align holes[cite: 346]." },
+        { q: "Castellated nuts should be tightened to which side of the torque range?", options: ["High side", "Low side", "Middle", "Double torque"], correct: 1, info: "Tighten to the low side of the selected range[cite: 342]." },
+        { q: "What tool makes safety tying easier on the mechanic's hands?", options: ["Hammer", "Safety wire pliers (wire twisters)", "Screwdriver", "Wrench"], correct: 1, info: "Safety wire pliers make the job much easier[cite: 326]." },
+        { q: "In safety wiring, the wire should be pulled ______ while installed.", options: ["Loose", "Taut", "Backwards", "In circles"], correct: 1, info: "Safety wire should be pulled taut while being installed[cite: 327]." },
+        { q: "Tab washers can be formed to shape around:", options: ["Windows", "Bolts and nuts", "Tires", "Wires"], correct: 1, info: "They are formed to shape around bolts and nuts[cite: 337]." },
+        { q: "Hollow-head bolts are safety wired in the same manner as:", options: ["Nails", "Regular bolts", "Glass", "Plastic caps"], correct: 1, info: "They are treated in the manner prescribed for regular bolts[cite: 345]." },
+        { q: "Where does a turning or actuating movement take place, you use a:", options: ["Nail", "Cotter pin", "Tape", "Glue"], correct: 1, info: "Cotter pins are used at locations with turning or actuating movement[cite: 327]." },
+        { q: "Safety wire 0.032' diameter is used on what?", options: ["Fasteners", "Fuel tanks", "Seat covers", "Windows"], correct: 0, info: "It is installed around the head of fasteners[cite: 327]." },
+        { q: "Tab washers are round and manufactured with:", options: ["Spikes", "Single or multiple tabs and notches", "Glue", "Rubber"], correct: 1, info: "They have tabs and notches to be formed around parts[cite: 337]." },
+        { q: "Safety wire loops should be pulled close to the:", options: ["Ground", "Contour of the unit", "Ceiling", "Handle"], correct: 1, info: "The loop should be pulled close to the contour of the unit[cite: 327]." },
+        { q: "If a slot doesn't line up with a hole on a nut at low torque, what do you do?", options: ["Loosen it", "Continue tightening until it lines up", "Leave it", "Use tape"], correct: 1, info: "Continue tightening until a slot lines with the hole[cite: 343]." },
+        { q: "What is the main advantage of using safety wire pliers?", options: ["They reduce wire consumption", "They make twisting easier and improve finish", "They eliminate the need for inspection", "They increase wire strength"], correct: 1, info: "Wire twisters reduce hand strain and produce a consistent finish." },
+        { q: "How many twists per inch are required for 0.032 inch safety wire?", options: ["3–5", "5–7", "7–10", "10–14"], correct: 2, info: "0.032 inch wire requires seven to ten twists per inch." },
+        { q: "In which direction should safety wire be twisted around a fastener?", options: ["Any direction", "Opposite to fastener rotation", "In the direction that tightens the fastener", "Vertically only"], correct: 2, info: "Safety wire must resist loosening of the fastener." },
+        { q: "What is the purpose of cotter pins?", options: ["Seal pressurised systems", "Secure fasteners where rotation occurs", "Prevent corrosion", "Improve alignment"], correct: 1, info: "Cotter pins secure bolts, screws, pins, and shafts subject to movement." },
+        { q: "How should the size of a cotter pin be selected?", options: ["Smallest available", "Based on bolt length", "Largest that fits the hole or nut slots", "Standardised size only"], correct: 2, info: "The largest suitable pin provides maximum security." },
+        { q: "Can cotter pins be reused on aircraft?", options: ["Yes if undamaged", "Yes once only", "No, never", "Only with inspection approval"], correct: 2, info: "Cotter pins must never be reused." },
+        { q: "When may lock washers be used?", options: ["With primary structures", "When self-locking or castellated nuts are not applicable", "On all fasteners", "Only on engine components"], correct: 1, info: "Lock washers are alternatives where other locking devices cannot be used." },
+        { q: "Which lock washer type relies on spring tension to prevent loosening?", options: ["Plain washer", "Split washer", "Tab washer", "Bonded washer"], correct: 1, info: "Split washers use spring action to resist vibration." },
+        { q: "Where must lock washers NOT be used?", options: ["Secondary structures", "Primary or safety-critical structures", "Avionics racks", "Interior fittings"], correct: 1, info: "Lock washers are prohibited in safety-critical applications." },
+        { q: "Why should lock washers not be exposed to airflow?", options: ["They increase drag", "They corrode rapidly", "They can loosen and fail", "They trap moisture"], correct: 2, info: "Exposure can lead to failure and loss of joint integrity." },
+        { q: "What is a key advantage of tab washers?", options: ["Low cost", "Ease of removal", "Resistance to vibration and heat", "Light weight"], correct: 2, info: "Tab washers are suitable for harsh environments." },
+        { q: "How should oil caps and drain cocks be safety wired on engines?", options: ["To adjacent bolts only", "Individually to an adjacent fillister-head screw", "In series with other fasteners", "Using cotter pins"], correct: 1, info: "Engine oil components are safety wired individually." },
+        { q: "When securing valve handles vertically with safety wire, where is the wire anchored?", options: ["To the valve body", "To one side of the pipe only", "To threads on both sides of the valve", "To adjacent structure"], correct: 2, info: "This ensures the valve remains locked in position." },
+        { q: "When tightening a castellated nut for safety wiring, where should torque be set?", options: ["High side of torque range", "Low side of torque range", "Mid-range only", "Finger tight"], correct: 1, info: "Torque is applied to the low side, then tightened only if needed." },
+        { q: "Is it permitted to loosen a nut to align a safety wire hole?", options: ["Yes", "Only with approval", "No", "Only on ground equipment"], correct: 2, info: "Fasteners must never be loosened to align holes." },
+        { q: "Why must aircraft components be handled carefully?", options: ["To reduce inspection time", "To avoid cosmetic damage only", "Due to high replacement cost", "To comply with manuals"], correct: 2, info: "Aircraft parts are expensive and easily damaged." },
+        { q: "What check must be carried out when a part is removed from storage?", options: ["Calibration check", "Damage check", "Certification review", "Weight verification"], correct: 1, info: "Removed parts must be checked for obvious damage." },
+        { q: "What must be done if damage is found on a removed component?", options: ["Tag as serviceable", "Discard immediately", "Inform the zone engineer", "Install temporarily"], correct: 2, info: "Damage must be assessed through proper inspection." },
+        { q: "Why must ports and openings on components be blanked?", options: ["Prevent corrosion only", "Protect threads and prevent contamination", "Improve storage efficiency", "Reduce inspection time"], correct: 1, info: "Blanking prevents dirt ingress and damage." },
+        { q: "What is the primary purpose of an identity tag on removed parts?", options: ["Track warranty", "Support inventory counts", "Provide traceability", "Speed up installation"], correct: 2, info: "Identity tags ensure full traceability of removed parts." },
+        { q: "Which software system is used by Ryanair to order parts?", options: ["SAP", "AMOS", "TRAX", "MAXIMO"], correct: 1, info: "AMOS is used for stock visibility and ordering." },
+        { q: "What must be written in AMOS if no stock is available?", options: ["URGENT", "BACK ORDER", "NIL STOCK", "AOG"], correct: 2, info: "NIL STOCK alerts Materials to order the part." },
+        { q: "Why is segregation of stock essential?", options: ["Improve inventory turnover", "Reduce paperwork", "Prevent unserviceable parts entering service", "Save storage space"], correct: 2, info: "Poor segregation risks flight safety." },
+        { q: "Which tag classification indicates a part cannot be repaired?", options: ["Repairable", "Serviceable", "Unserviceable", "Deferred"], correct: 2, info: "Unserviceable parts are beyond repair." },
+        { q: "Where must unserviceable components be placed?", options: ["Tool stores", "Workshop benches", "Quarantine cage or stores", "Scrap bin"], correct: 2, info: "This prevents accidental reuse." },
+        { q: "How should aircraft panels be stored after removal?", options: ["Stacked on the floor", "Leant against the aircraft", "In marked racking where available", "Wrapped in plastic only"], correct: 2, info: "Proper racking prevents surface damage." },
+        { q: "Why must EWIS components be protected during maintenance?", options: ["They are expensive only", "They are sensitive to contamination and damage", "They require calibration", "They affect weight and balance"], correct: 1, info: "EWIS damage can lead to system failure or fire." },
+        { q: "How should wire bundles with attached components be stored?", options: ["Hung from one point", "Tightly coiled", "Loosely supported with protection", "Placed directly on shelves"], correct: 2, info: "Proper support prevents wire and connector damage." },
+        { q: "What is the minimum bend radius when hanging wire bundles?", options: ["Five times bundle diameter", "Eight times bundle diameter", "Ten times bundle diameter", "Fifteen times bundle diameter"], correct: 2, info: "Excessive bending damages wiring." },
+        { q: "What must NEVER be used as a step or handhold?", options: ["Aircraft structure", "Access panels", "EWIS components", "Engine mounts"], correct: 2, info: "EWIS components are easily damaged." },
+        { q: "How should aircraft tyres be stored?", options: ["Flat stacked", "Hung vertically", "Vertically supported at two points", "Laid on sidewalls"], correct: 2, info: "Correct support prevents distortion." },
+        { q: "Why is flat stacking sheet metal not recommended?", options: ["It wastes space", "It causes scratches", "It traps moisture", "It increases corrosion"], correct: 1, info: "Sliding sheets damages surfaces." },
+        { q: "Why must hydraulic and fuel components be isolated during storage?", options: ["They are heavy", "They may leak fluid", "They corrode quickly", "They require pressurisation"], correct: 1, info: "Leaked fluid can damage other items." },
+        { q: "When should protective coverings be removed from aircraft windows?", options: ["On receipt", "During storage", "Immediately before repair or installation", "After inspection"], correct: 2, info: "Protection prevents surface damage." },
+        { q: "Why must grease be kept away from oxygen systems?", options: ["It causes corrosion", "It reduces flow", "It may cause fire or explosion", "It contaminates seals"], correct: 2, info: "Oxygen reacts violently with oils and grease." },
+        { q: "How should cleaned oxygen fittings be stored?", options: ["Open containers", "Cardboard boxes", "Sealed polyethylene bags", "Tool drawers"], correct: 2, info: "Sealed bags prevent contamination." },
+        { q: "What colour identifies an oxygen gas cylinder?", options: ["Green", "Black", "White", "Maroon"], correct: 2, info: "Oxygen cylinders are white." },
+        { q: "Why is red tape used when blanking components?", options: ["It is stronger", "It resists oil", "It clearly indicates abnormal condition", "It prevents corrosion"], correct: 2, info: "Red tape provides a clear visual warning." },
+        { q: "Who is responsible for obvious damage checks on removed components?", options: ["Inspector only", "Stores personnel", "The person removing the component", "Quality department"], correct: 2, info: "Initial responsibility lies with the remover." },
+
+        { q: "Why are aircraft parts inherently expensive?", options: ["They are gold-plated", "They meet high airworthy standards", "They are old", "They are heavy"], correct: 1, info: "They are designed and approved to meet strict airworthy standards[cite: 349]." },
+        { q: "What should be done before placing a part in a storage area?", options: ["Paint it", "Check that the area is clean and free from debris", "Wash it with soap", "Take a photo"], correct: 1, info: "Storage areas must be clean and free from debris[cite: 353]." },
+        { q: "What check must be performed by the person removing a part?", options: ["An obvious damage check", "A weight check", "A smell check", "A taste check"], correct: 0, info: "An obvious damage check ensures the part is still serviceable[cite: 354]." },
+        { q: "What must be done if a part has ports or openings?", options: ["Leave them open", "They must be blanked off", "Fill them with dirt", "Wrap them in paper"], correct: 1, info: "Ports or openings must be blanked off[cite: 356, 389]." },
+        { q: "What is the purpose of blanking caps?", options: ["To make parts look new", "To protect threads and prevent ingress of dirt", "To add weight", "To hide the part number"], correct: 1, info: "They protect threads and form an independent pressure seal[cite: 357, 390]." },
+        { q: "Every part removed from the aircraft MUST have what attached?", options: ["A sticker", "An identity tag", "A ribbon", "A lock"], correct: 1, info: "An identity tag must be attached to any removed part[cite: 358]." },
+        { q: "What software does Ryanair use to order parts?", options: ["Windows", "AMOS", "Excel", "Spotify"], correct: 1, info: "Ryanair uses AMOS to order and view stock[cite: 359]." },
+        { q: "What must be written in AMOS if no stock is available?", options: ["OUT OF ORDER", "NIL STOCK", "TRY AGAIN", "ERROR"], correct: 1, info: "NIL STOCK must be written when no stock is available[cite: 361]." },
+        { q: "How should glass windows be handled?", options: ["Slide them across the table", "Keep them in containers until repair/installation", "Hold them by the plastic edge", "Stack them on top of each other"], correct: 1, info: "Keep windows in containers and do not remove protection until needed[cite: 393, 394]." },
+        { q: "What is a 'release pin' used for in the PSU?", options: ["To hold the oxygen mask", "To prevent the oxygen generator from firing", "To lock the seat", "To open the door"], correct: 1, info: "The release pin must stay engaged to avoid setting off the generator[cite: 413]." },
+        { q: "What is the pressure in an escape slide pack approximately?", options: ["10psi", "500psi", "3000psi", "10000psi"], correct: 2, info: "It contains approximately 3000psi, making it dangerous to handle[cite: 415]." },
+        { q: "How should gas cylinders be secured?", options: ["Lean them against a wall", "Chaining them to a building", "Laying them flat", "Stacking them"], correct: 1, info: "Chaining them to a building is a common method of securing cylinders[cite: 417]." },
+        { q: "What color is a Nitrogen gas bottle?", options: ["White", "Maroon", "Black", "Green"], correct: 2, info: "Nitrogen bottles are black[cite: 419]." },
+        { q: "What color is an Oxygen gas bottle?", options: ["Black", "White", "Maroon", "Grey"], correct: 1, info: "Oxygen bottles are white[cite: 419]." },
+        { q: "What color tape is used to secure a plastic bag over an opening?", options: ["Blue", "Green", "Red", "Yellow"], correct: 2, info: "Red tape is used as it draws attention[cite: 422, 424]." },
+        { q: "Why must you never push a bag inside a component when blanking?", options: ["It might tear", "It is a FOD hazard", "It looks bad", "It is too expensive"], correct: 1, info: "Pushing a bag inside is a FOD hazard[cite: 425]." },
+        { q: "Where should finishing materials (paint) be stored?", options: ["In the sun", "In fireproof metal cabinets", "In the fridge", "Under the stairs"], correct: 1, info: "They should be in fireproof cabinets in a well-ventilated area[cite: 429]." },
+        { q: "Identity tags must include the reason why the part was removed.", options: ["True", "False"], correct: 0, info: "Reasons for removal is a mandatory field on the identity tag[cite: 359]." },
+        { q: "When handling windows, you should avoid holding them by the:", options: ["Glass", "Plastic around the edge", "Container", "Bottom"], correct: 1, info: "Do not hold the window up on the plastic around the edge[cite: 398]." },
+        { q: "What gas bottle has a maroon color?", options: ["Oxygen", "Nitrogen", "Acetylene", "Air"], correct: 2, info: "Acetylene bottles are maroon[cite: 419]." },
+
+        { q: "Screw extractors are made of what type of material?", options: ["Soft aluminum", "Hard but brittle steel", "Plastic", "Rubber"], correct: 1, info: "They are made of very hard but brittle steel[cite: 449]." },
+        { q: "Why shouldn't you apply side loads to a screw extractor?", options: ["It might slip", "It may break off in the hole", "It will get hot", "It's too heavy"], correct: 1, info: "Side loads can cause the brittle extractor to break[cite: 450]." },
+        { q: "If an extractor breaks in a hole, can it be drilled out?", options: ["Yes, easily", "No, it's harder than any drill", "Only with a wooden drill", "Yes, with water"], correct: 1, info: "The extractor is harder than any drill; grinding is the only specialist option[cite: 451, 452]." },
+        { q: "Where should you check for the correct fastener length/material?", options: ["The MOE", "The AIPC", "The newspaper", "The tech log"], correct: 1, info: "Fasteners must be replaced in accordance with the AIPC[cite: 453]." },
+        { q: "What must be performed BEFORE a panel is installed?", options: ["A paint job", "A FOD check", "A weight check", "A speed test"], correct: 1, info: "Technicians must perform a visual FOD check before fastening[cite: 455]." },
+        { q: "Failure to set final torque on a panel could result in:", options: ["Improved aerodynamics", "Loss of structural integrity or panel loss", "Faster flight", "Better fuel economy"], correct: 1, info: "It can lead to catastrophic conditions, including loss of control[cite: 456]." },
+        { q: "What is the result of 'Quilting' on a panel?", options: ["A shiny surface", "An un-aerodynamic section", "Increased speed", "Lower noise"], correct: 1, info: "Quilting results in an un-aerodynamic section of the aircraft[cite: 458]." },
+        { q: "In a closed pattern (circle) of bolts, how should you tighten them?", options: ["In a row", "Opposite pairs", "Randomly", "Top to bottom"], correct: 1, info: "In a circle, first seat opposite pairs, then torque opposite pairs[cite: 461, 462]." },
+        { q: "What must be removed around a panel gap to ensure a reliable sealant bond?", options: ["Only dust", "All traces of contamination and old sealant", "Nothing", "The paint"], correct: 1, info: "All surfaces must be free of contaminants and old sealant[cite: 464]." },
+        { q: "When should masking tape be removed after applying sealant?", options: ["After 24 hours", "While sealant is still workable", "When it is fully cured", "Never"], correct: 1, info: "Remove masking while sealant is still workable for a tidy edge[cite: 467]." },
+        { q: "Which chapter of the maintenance manual covers 'Standard Practices'?", options: ["Chapter 5", "Chapter 12", "Chapter 20", "Chapter 53"], correct: 2, info: "Standard practices are quoted in Chapter 20[cite: 456]." },
+        { q: "A multiple-bolt installation is defined as a row of at least how many bolts?", options: ["2", "3", "5 or more", "10"], correct: 2, info: "It is a row of 5 or more bolts in a line or pattern[cite: 460]." },
+        { q: "What tool is used to remove a screw whose head is damaged?", options: ["Hammer", "Screw extractor", "Wrench", "Pliers"], correct: 1, info: "Screw extractors are used for fasteners with damaged heads[cite: 447]." },
+        { q: "In what direction do you turn a screw extractor?", options: ["Clockwise", "Anti-clockwise", "Upwards", "Downwards"], correct: 1, info: "Turn it anti-clockwise whilst applying inward pressure[cite: 447]." },
+        { q: "Aerodynamic smoothing is used around:", options: ["The tires", "Panel to structure gaps", "The windows", "The seats"], correct: 1, info: "It is required around panel to structure gaps[cite: 463]." },
+        { q: "What is used to provide a tidy edge for sealant touch-up paint?", options: ["Glue", "Masking tape", "Paper", "Red tape"], correct: 1, info: "Mask the area off to provide a tidy edge[cite: 465]." },
+        { q: "Sealant and tooling should be disposed of according to:", options: ["The manager's wish", "Local environmental protection measures", "The bin color", "The nearest drain"], correct: 1, info: "Dispose in accordance with local environmental measures[cite: 469]." },
+        { q: "When is the installation complete regarding surface finish?", options: ["Immediately", "When full cure time has elapsed", "Before torque", "Never"], correct: 1, info: "Complete by restoring finish after full cure[cite: 470]." },
+        { q: "What prevents an extractor from biting if not used correctly?", options: ["Applying side load", "Applying inward pressure", "Turning anti-clockwise", "Using it on steel"], correct: 0, info: "Applying side load can break it, preventing successful use[cite: 450]." },
+        { q: "Many panels have variety in which area?", options: ["Color only", "Fastener lengths, sizes, and materials", "Weight only", "Smell"], correct: 1, info: "Panels use a variety of fastener lengths, sizes, and materials[cite: 454]." },
+
+        { q: "What are the two main types of lubrication used in aircraft maintenance?", options: ["Water and Soap", "Grease and Oil", "Air and Gas", "Glue and Paint"], correct: 1, info: "Grease and oil are the two main types[cite: 472]." },
+        { q: "What is the primary function of a lubricant?", options: ["To make parts sticky", "To separate moving parts and prevent wear", "To increase heat", "To add weight"], correct: 1, info: "Lubricants keep moving parts apart to prevent wear[cite: 473]." },
+        { q: "What can boost a lubricant's performance against wear?", options: ["Water", "Anti-wear or extreme pressure additives", "Dust", "Sand"], correct: 1, info: "Additives boost performance against wear and fatigue[cite: 474]." },
+        { q: "Grease is essentially a mixture of oil and what?", options: ["Water", "A thickening agent", "Paint", "Metal"], correct: 1, info: "Grease is a mixture of oil and a thickening agent[cite: 480]." },
+        { q: "In what systems is oil-based lubrication primarily used?", options: ["Tires and Seats", "Engine, gearbox, and hydraulic systems", "Windows and Doors", "Galley and Toilet"], correct: 1, info: "It is used in engine, gearbox, and hydraulic systems[cite: 502]." },
+        { q: "What can happen if incompatible base oils are mixed?", options: ["They get stronger", "Additives may fall out of solution", "They turn into water", "Nothing"], correct: 1, info: "Mixing can lead to additives not holding in solution or combatting each other[cite: 509]." },
+        { q: "Which is a sign of lubricant incompatibility?", options: ["Increased foaming", "Better viscosity", "Lower price", "Cleaner parts"], correct: 0, info: "Indications include foaming, oxidation, and altered viscosity[cite: 511]." },
+        { q: "What is 'varnish' in a mechanical system?", options: ["A type of paint", "A deposit caused by lubricant damage", "A cleaning fluid", "A metal coating"], correct: 1, info: "Varnish/deposits result from lubricant damage like oxidation[cite: 514]." },
+        { q: "Why does oil-based lubrication reduce noise?", options: ["It is heavy", "It cushions parts against impact and vibration", "It stops the engine", "It is thick"], correct: 1, info: "Oil cushions parts, reducing operation sounds[cite: 505]." },
+        { q: "Synthetic lubricants can be harmful if their ______ are inhaled.", options: ["Colors", "Vapours", "Labels", "Bottles"], correct: 1, info: "Inhaling vapours of synthetic oils can be harmful or toxic[cite: 731]." },
+        { q: "What effect do oils and fuels have on paintwork?", options: ["They protect it", "They have an adverse effect/inhibit corrosion schemes", "They make it shiny", "They change the color to green"], correct: 1, info: "They have an adverse effect on paint, adhesives, and sealants[cite: 734]." },
+        { q: "What should you do immediately if an oil spillage occurs?", options: ["Leave it for later", "Clean it up immediately", "Report it next week", "Ignore it"], correct: 1, info: "Spillages must be cleaned up immediately[cite: 735]." },
+        { q: "Additives that exclude moisture help to prevent:", options: ["Fire", "Corrosion", "Noise", "Speed"], correct: 1, info: "Additives exclude moisture to prevent corrosion[cite: 475]." },
+        { q: "Grease is used where oil would ______.", options: ["Be too heavy", "Not stay in place", "Be too expensive", "Freeze"], correct: 1, info: "Grease is used where a liquid lubricant would not stay[cite: 480]." },
+        { q: "High viscosity means the oil is:", options: ["Very thin", "Thick and flows slowly", "Transparent", "Hot"], correct: 1, info: "Viscosity refers to the thickness/flow rate of the oil[cite: 511, 513]." },
+        { q: "Mixing lubricants can lead to premature plugging of which component?", options: ["The fuel tank", "Filters", "The exhaust", "The cockpit"], correct: 1, info: "Incompatibility can lead to premature filter plugging[cite: 514]." },
+        { q: "Oil helps to clean mechanical components because of its:", options: ["Color", "Additives", "Weight", "Smell"], correct: 1, info: "Additives in the oil help it perform cleaning operations[cite: 507]." },
+        { q: "Demulsibility refers to the oil's ability to separate from:", options: ["Air", "Water", "Metal", "Dirt"], correct: 1, info: "Loss of demulsibility of water is a sign of lubricant damage[cite: 513]." },
+        { q: "Which property of oil protects against metal-to-metal contact?", options: ["Color", "Film strength", "Weight", "Volume"], correct: 1, info: "Film strength separates internal parts[cite: 503, 511, 514]." },
+        { q: "Extreme pressure additives are used to boost performance against:", options: ["Rust only", "Wear and fatigue", "Heat only", "Speed"], correct: 1, info: "They boost performance against wear and fatigue[cite: 474]." },
+
+        { q: "What are the most significant hazards during aircraft painting?", options: ["Loud noise", "Airborne chemicals and atomized mist", "Slippery ladders", "Bright lights"], correct: 1, info: "Inhaled chemicals and spray mist are the primary hazards[cite: 516]." },
+        { q: "What does a respirator filter from the air?", options: ["Oxygen", "Particles and organic vapours", "Nitrogen", "Carbon dioxide"], correct: 1, info: "It filters particles and organic vapours[cite: 518]." },
+        { q: "How are paper decals removed?", options: ["Scraping with metal", "Rubbing with cloth dampened with lacquer thinner", "Using a hammer", "Water only"], correct: 1, info: "Use a cloth dampened with lacquer thinner[cite: 535]." },
+        { q: "What should be used to peel off metal decals after moistening the edge?", options: ["Aliphatic naphtha", "MEK", "Soap", "Oil"], correct: 0, info: "Moisten the edge with aliphatic naphtha to peel metal decals[cite: 537]." },
+        { q: "Vinyl film decals are removed using which chemical?", options: ["Water", "MEK (Methyl Ethyl Ketone)", "Oil", "Lacquer thinner"], correct: 1, info: "Vinyl decals are removed by saturating a cloth with MEK[cite: 538]." },
+        { q: "What tool is used to scrape off vinyl decals after using MEK?", options: ["Metal scraper", "Plastic scraper", "Screwdriver", "Spoon"], correct: 1, info: "Use a plastic scraper to avoid damage[cite: 538]." },
+        { q: "What is used to remove remaining adhesive after decal removal?", options: ["Sandpaper", "Dry-cleaning solvent", "Paint", "Glue"], correct: 1, info: "Wipe with a cloth dampened with dry-cleaning solvent[cite: 539]." },
+        { q: "Why is paint removed from an entire aircraft?", options: ["To change the color only", "Weight reduction and to inspect for corrosion", "To make it heavier", "To hide defects"], correct: 1, info: "Stripping paint reduces weight and allows for corrosion inspection[cite: 540]." },
+        { q: "What must be protected before chemical stripping?", options: ["Only the engines", "Windows, vents, static ports, and rubber seals", "Nothing", "The hangar floor only"], correct: 1, info: "Protect windows, ports, seals, and tires before stripping[cite: 540]." },
+        { q: "Who can recommend protective material for areas not being stripped?", options: ["The pilot", "The stripper manufacturer", "The airport", "The cleaners"], correct: 1, info: "The stripper manufacturer can recommend protective materials[cite: 540]." },
+        { q: "A common respirator uses which type of filter cartridges?", options: ["Paper only", "Double charcoal filtered", "Water filtered", "No filters"], correct: 1, info: "Most common types use double charcoal filtered cartridges[cite: 519]." },
+        { q: "What chemical is used sparingly on painted surfaces to remove paper decals?", options: ["MEK", "Lacquer thinner", "Water", "Grease"], correct: 1, info: "Use lacquer thinner sparingly to avoid removing the underlying paint[cite: 536]." },
+        { q: "Stripping gallons of paint results in significant ______ reduction.", options: ["Speed", "Weight", "Cost", "Noise"], correct: 1, info: "Stripping paint offers a weight reduction gain[cite: 540]." },
+        { q: "Composite components may be affected by:", options: ["Water", "Stripping chemicals", "Air", "Sunlight"], correct: 1, info: "Chemicals can affect composite components[cite: 540]." },
+        { q: "Where should work be carried out when using lacquer thinner?", options: ["In a closed box", "Well-ventilated area", "Under water", "In the dark"], correct: 1, info: "Always work in a well-ventilated area[cite: 538]." },
+        { q: "Paint removal involves concern for which global issue?", options: ["Population", "The environment", "Space travel", "Mining"], correct: 1, info: "Disposal of water and coating materials has an environmental impact[cite: 540]." },
+        { q: "Incorrect grade reducer can lead to:", options: ["Better paint", "Paint finish defects/incompatibility", "Faster drying", "Stronger skin"], correct: 1, info: "Wrong reducer or improper mixing causes finish defects[cite: 535]." },
+        { q: "What device provides forced air for breathing in hazardous mists?", options: ["Respirator", "Forced air breathing system", "A fan", "A snorkel"], correct: 1, info: "Forced air systems protect against atomized mist[cite: 517]." },
+        { q: "Surface preparation is critical for:", options: ["Fueling", "The desired finish of a coating", "Cleaning windows", "Tire pressure"], correct: 1, info: "Preparation is vital for the final finish[cite: 540]." },
+        { q: "What is atomised mist?", options: ["Solid ice", "Fine spray from painting applications", "Clouds", "Dust"], correct: 1, info: "It is the mist resulting from spraying applications[cite: 516]." },
+        { q: "Why must fastener heads be cleaned before panel removal?", options: ["To improve appearance", "To reduce torque requirements", "To prevent damage and improve grip", "To identify fastener type"], correct: 2, info: "Contaminated fastener heads can cause loss of grip and damage." },
+{ q: "What tool is recommended to remove sealant or FOD from fastener heads?", options: ["Flat screwdriver", "Wire brush", "Pick", "Scraper"], correct: 2, info: "A pick allows careful removal of sealant or debris." },
+{ q: "What is the main risk when using a pick on fastener heads?", options: ["Breaking the fastener", "Slipping and damaging surrounding structure", "Removing too much sealant", "Blunting the pick"], correct: 1, info: "Care must be taken to avoid scratching panels or structure." },
+{ q: "Why is inspecting the fastener head before removal important?", options: ["It reduces maintenance time", "It avoids the need for power tools", "It prevents damage to the screw", "It improves torque accuracy"], correct: 2, info: "Preparation is quicker and cheaper than repairing damaged screws." },
+{ q: "Which drive bit is typically used on Boeing aircraft panels?", options: ["Philips No1", "Philips No2", "Torx T25", "Pozidriv"], correct: 1, info: "Philips No2 is commonly specified." },
+{ q: "What is the recommended technique to break initial torque?", options: ["Turn quickly with light pressure", "Push more than you turn", "Use power tools immediately", "Rock the screw side to side"], correct: 1, info: "Positive inward pressure prevents cam-out." },
+{ q: "When should screw runners be used?", options: ["To break initial torque", "Only after initial torque is broken", "For final installation only", "On all fasteners"], correct: 1, info: "Using them too early can damage screw heads." },
+{ q: "Why should electric tools not be used in flammable areas?", options: ["They are inaccurate", "They generate excessive torque", "They pose a fire risk", "They damage fasteners"], correct: 2, info: "Fuel or oil vapours may ignite." },
+{ q: "What is the function of a Brutus bar?", options: ["Align panels", "Increase speed of removal", "Provide leverage using adjacent fasteners", "Prevent panel distortion"], correct: 2, info: "It increases applied force via a fulcrum." },
+{ q: "When should drilling a screw be considered?", options: ["As a routine method", "Before using extraction tools", "As a last resort", "When power tools fail"], correct: 2, info: "Drilling risks damage and should be avoided if possible." },
+{ q: "What is the preferred first step when drilling a seized screw?", options: ["Drill the head off", "Use a screw extractor", "Increase drill speed", "Grind the screw"], correct: 1, info: "Extractors preserve the surrounding structure." },
+{ q: "Why must side loads not be applied to screw extractors?", options: ["They dull quickly", "They may slip", "They are brittle and may break", "They lose grip"], correct: 2, info: "Broken extractors cannot be drilled out." },
+{ q: "What must be done with damaged fasteners during installation?", options: ["Reuse if serviceable", "Lubricate heavily", "Replace per AIPC", "Install with sealant"], correct: 2, info: "Correct fasteners must always be used." },
+{ q: "What check must be carried out before installing a panel?", options: ["Weight check", "FOD check", "Sealant inspection", "Torque verification"], correct: 1, info: "Foreign objects must be removed prior to installation." },
+{ q: "Where is final torque information found?", options: ["Engineering orders", "AIPC", "Standard Practices Chapter 20 or MM", "Training manuals"], correct: 2, info: "Torque must meet maintenance manual requirements." },
+{ q: "What is a possible consequence of incorrect panel torque?", options: ["Paint damage", "Increased fuel burn", "Loss of panel in flight", "Noise complaints"], correct: 2, info: "Panel loss can lead to catastrophic conditions." },
+{ q: "What is quilting?", options: ["Paint blistering", "Panel cracking", "Skin distortion due to improper fastening", "Sealant separation"], correct: 2, info: "Quilting affects aerodynamics." },
+{ q: "How should multiple-bolt installations be tightened?", options: ["Sequentially", "Random order", "Opposite pairs in stages", "Center outward only"], correct: 2, info: "This ensures even seating and load distribution." },
+{ q: "Why must surfaces be cleaned before sealing panels?", options: ["Improve appearance", "Ensure reliable sealant bond", "Reduce curing time", "Prevent corrosion only"], correct: 1, info: "Contamination prevents proper adhesion." },
+{ q: "When should masking tape be removed during sealing?", options: ["After full cure", "Immediately after application", "While sealant is still workable", "Before sealant application"], correct: 2, info: "This prevents smearing excess sealant." },
+{ q: "What are the two main types of aircraft lubrication?", options: ["Dry and wet", "Synthetic and mineral", "Grease and oil", "Solid and liquid"], correct: 2, info: "Grease and oil are the primary lubrication types." },
+{ q: "What is the main function of lubricants?", options: ["Clean components", "Separate moving parts", "Increase friction", "Seal joints"], correct: 1, info: "Lubricants prevent wear by separation." },
+{ q: "Why must only specified oils and greases be used?", options: ["Cost control", "Compatibility and safety", "Availability", "Standardisation"], correct: 1, info: "Incorrect lubricants can cause failure." },
+{ q: "What PPE is mandatory when working with oils?", options: ["Respirator", "Eye protection", "Steel toe boots", "Hearing protection"], correct: 1, info: "Eye protection must always be used." },
+{ q: "Which oils are considered most hazardous?", options: ["Mineral oils", "Vegetable oils", "Synthetic oils", "Hydraulic oils only"], correct: 2, info: "Synthetic oils are toxic but high performing." },
+{ q: "Where must oils and lubricants be stored?", options: ["Workshop floor", "Tool rooms", "Dedicated fire-proof store", "Hangar shelves"], correct: 2, info: "Fire risk requires secure storage." },
+{ q: "Why must lubricant containers be resealed after use?", options: ["Prevent evaporation", "Prevent contamination", "Reduce waste", "Maintain viscosity"], correct: 1, info: "Open containers must not be reused." },
+{ q: "What is the purpose of a grease gun?", options: ["Clean components", "Apply grease through a nipple", "Measure grease quantity", "Store grease"], correct: 1, info: "Grease guns deliver lubricant to specific points." },
+{ q: "What must be done before lubricating bearings?", options: ["Apply oil first", "Check magnetism and clean surfaces", "Heat the bearing", "Remove seals"], correct: 1, info: "Cleanliness is critical before lubrication." },
+{ q: "What must be done when changing grease types?", options: ["Mix greases", "Add solvent", "Remove old grease", "Increase frequency"], correct: 2, info: "Mixing incompatible greases reduces performance." },
+{ q: "What is a sign of lubricant incompatibility?", options: ["Dark colour", "Increased foaming", "Reduced smell", "Higher density"], correct: 1, info: "Foaming and viscosity changes indicate problems." },
+{ q: "What is the primary hazard during surface finishing?", options: ["Noise", "Airborne chemicals", "Heat", "Static electricity"], correct: 1, info: "Vapours and mist pose inhalation risks." },
+{ q: "Which paints require protection beyond a respirator?", options: ["Epoxy paints", "Enamels", "Isocyanate-based paints", "Primers"], correct: 2, info: "Respirators do not protect against isocyanates." },
+{ q: "What indicates proper surface cleaning before painting?", options: ["Shiny appearance", "Water break free surface", "Dry texture", "Uniform colour"], correct: 1, info: "Water must flow evenly without beading." },
+{ q: "What is the purpose of Alodine® or conversion coating?", options: ["Improve appearance", "Provide corrosion protection", "Increase thickness", "Seal paint"], correct: 1, info: "Conversion coatings protect aluminium." },
+{ q: "Why must primer be applied as soon as possible?", options: ["Improve gloss", "Prevent contamination and corrosion", "Reduce drying time", "Enhance colour"], correct: 1, info: "Bare surfaces corrode quickly." },
+{ q: "What should be done if paint has exceeded shelf life?", options: ["Thin and use", "Mix thoroughly", "Discard", "Filter and apply"], correct: 2, info: "Expired coatings must not be used." },
+{ q: "What masking material produces sharp trim lines?", options: ["Newspaper", "Standard masking tape", "3M Fine Line tape", "Plastic film"], correct: 2, info: "Fine Line tape gives clean edges." },
+{ q: "What is a common cause of poor paint adhesion?", options: ["High temperature", "Improper surface preparation", "Low humidity", "Thin application"], correct: 1, info: "Preparation errors lead to adhesion failure." },
+{ q: "Why is paint removal performed during refinishing?", options: ["Improve colour", "Reduce cost", "Allow inspection and corrosion repair", "Save time"], correct: 2, info: "Stripping reveals hidden defects." },
+
+
+
+        {
+            q: "Under Health and Safety law, RIDDOR stands for:",
+            options: ["Reporting of Incidents, Diseases and Dangerous Occurrences Regulations", "Reporting of Injuries, Defects and Dangerous Occurrences Regulations", "Reporting of Injuries, Diseases and Dangerous Occurrences Regulations", "Recording of Injuries, Diseases and Dangerous Occurrences Regulations"],
+            correct: 2,
+            info: "RIDDOR 2012 requires employers to report specific work-related accidents and diseases."
+          },
+          {
+            q: "What is the correct definition of PUWER?",
+            options: ["Provision and Use of Work Equipment Regulations", "Power and Utility of Work Equipment Regulations", "Provision and Usage of Working Equipment Regulations", "Professional Use of Work Equipment Regulations"],
+            correct: 0,
+            info: "PUWER 1998 ensures that equipment provided for use at work is safe and maintained."
+          },
+          {
+            q: "LOLER is primarily concerned with:",
+            options: ["Lowering Operations and Lifting Equipment Regulations", "Lifting Operations and Loading Equipment Regulations", "Lifting Operations and Lifting Equipment Regulations", "Loading Operations and Lifting Engineering Regulations"],
+            correct: 2,
+            info: "LOLER 1998 covers the use of lifting equipment, including hoists and slings."
+          },
+          {
+            q: "The acronym PPE refers to:",
+            options: ["Permanent Protective Equipment", "Personal Protective Equipment", "Personnel Protection Engineering", "Public Protective Equipment"],
+            correct: 1,
+            info: "PPE includes items like goggles, gloves, and safety boots used to protect the individual."
+          },
+          {
+            q: "RPE is a specific type of safety equipment used for:",
+            options: ["Radiological Protection", "Respiratory Protective Equipment", "Rescue Protective Equipment", "Rapid Protection Evaluation"],
+            correct: 1,
+            info: "RPE is used to protect the wearer from inhaling hazardous substances like dust or fumes."
+          },
+          {
+            q: "What does MSDS provide information on?",
+            options: ["Material Safety Data Sheet", "Maintenance Safety Data Sheet", "Material Security Data Sheet", "Manual Safety Data System"],
+            correct: 0,
+            info: "An MSDS contains details on chemicals, including hazards and handling procedures."
+          },
+          {
+            q: "The unit 'dB' is used to measure:",
+            options: ["Distance between points", "Decibels (Noise levels)", "Damping Bias", "Data Bandwidth"],
+            correct: 1,
+            info: "Decibels (dB) are used to measure sound intensity to prevent hearing damage."
+          },
+          {
+            q: "In the context of hangar safety, what is a MEWP?",
+            options: ["Mobile Electronic Work Platform", "Maintenance Elevated Work Platform", "Mobile Elevated Work Platforms", "Manual Entry Work Platform"],
+            correct: 2,
+            info: "MEWPs include equipment like scissor lifts and cherry pickers."
+          },
+          {
+            q: "Which agency is responsible for aviation safety in Europe?",
+            options: ["European Aircraft Safety Association", "European Aviation Standards Agency", "European Aviation Safety Agency", "Euro-Atlantic Safety Agency"],
+            correct: 2,
+            info: "EASA sets the standards for aviation safety and environmental protection."
+          },
+          {
+            q: "What does EU stand for?",
+            options: ["Eastern Union", "European Union", "Engine Utility", "Electronic Unit"],
+            correct: 1,
+            info: "The EU provides the political and economic framework for member states' aviation regulations."
+          },
+          {
+            q: "A CAMO is responsible for:",
+            options: ["Commercial Aircraft Maintenance Operations", "Continuing Airworthiness Management Organisation", "Civil Aviation Maintenance Office", "Component Airworthiness Management Organisation"],
+            correct: 1,
+            info: "The CAMO ensures that an aircraft is maintained in an airworthy condition."
+          },
+          {
+            q: "An MRO is a facility that performs:",
+            options: ["Maintenance Repair Organisation", "Main Repair Operations", "Manual Repair Organisation", "Maintenance Reliability Oversight"],
+            correct: 0,
+            info: "MROs are the physical facilities where aircraft maintenance and repairs are carried out."
+          },
+          {
+            q: "The document that describes how a maintenance company works is the:",
+            options: ["Manual of Engineering", "Maintenance Organisation Exposition (MOE)", "Maintenance Operations Entry", "Main Organisation Examination"],
+            correct: 1,
+            info: "The MOE is the primary document required for Part 145 approval."
+          },
+          {
+            q: "What does MTOE stand for?",
+            options: ["Maintenance Training Organisation Exposition", "Management Training Organisation Exposition", "Maintenance Technical Organisation Entry", "Maintenance Training Operational Exposition"],
+            correct: 0,
+            info: "The MTOE defines how a Part 147 training organisation conducts its activities."
+          },
+          {
+            q: "A company with DOA approval can:",
+            options: ["Destroy Old Aircraft", "Detail Operational Activities", "Design Organisation Approval", "Deploy Operational Aircraft"],
+            correct: 2,
+            info: "DOA is required for organisations that design aircraft parts or modifications."
+          },
+          {
+            q: "What does POA stand for in aircraft manufacturing?",
+            options: ["Parts Ordering Authority", "Production Organisation Approval", "Product Operations Approval", "Project Organisation Approval"],
+            correct: 1,
+            info: "POA allows a company to manufacture aircraft parts to an approved design."
+          },
+          {
+            q: "An AOC is required by an airline to:",
+            options: ["Approve Operational Changes", "Air Operator Certificate", "Aircraft Operation Code", "Airborne Operator Control"],
+            correct: 1,
+            info: "The AOC allows an operator to use aircraft for commercial air transport."
+          },
+          {
+            q: "CAME is the exposition document for which organisation?",
+            options: ["CAMO", "MRO", "Part 147 School", "EASA"],
+            correct: 0,
+            info: "CAME stands for Continuing Airworthiness Management Exposition."
+          },
+          {
+            q: "CDCCL is a critical safety term related to:",
+            options: ["Component Design Control Configuration Limitation", "Critical Design Control Configuration Limitation", "Critical Device Control Component Limitation", "Carbon Design Control Configuration List"],
+            correct: 1,
+            info: "CDCCL relates to features that must be maintained to prevent ignition sources in fuel tanks."
+          },
+          {
+            q: "What does EWIS stand for?",
+            options: ["Electrical Wiring Installation System", "Electronic Wiring Interconnection System", "Electrical Wiring Interconnection System", "Engine Wiring Insulation System"],
+            correct: 2,
+            info: "EWIS refers to all wires and components used to transmit electrical energy between aircraft points."
+          },
+          {
+            q: "What is the meaning of CT in staff training?",
+            options: ["Component Training", "Continuous Training", "Certified Technician", "Corrective Training"],
+            correct: 1,
+            info: "Continuous Training is provided to staff to maintain up-to-date knowledge (Continuation Training)."
+          },
+          {
+            q: "OJT stands for:",
+            options: ["Off-Job Training", "On the Job Training", "Official Job Task", "Operational Job Training"],
+            correct: 1,
+            info: "OJT is practical training performed in a real working environment, recorded in a logbook."
+          },
+          {
+            q: "Maintenance performed at the aircraft parking gate is called:",
+            options: ["Base Maintenance", "Local Maintenance", "Line Maintenance (LM)", "Light Maintenance"],
+            correct: 2,
+            info: "Line Maintenance (LM) involves minor repairs and checks done before flight."
+          },
+          {
+            q: "BM stands for maintenance performed in a hangar, known as:",
+            options: ["Basic Maintenance", "Base Maintenance", "Bulk Maintenance", "Building Maintenance"],
+            correct: 1,
+            info: "Base Maintenance (BM) involves more complex, long-term maintenance tasks."
+          },
+          {
+            q: "Every aircraft must follow an AMP, which is the:",
+            options: ["Approved Maintenance Program", "Aircraft Maintenance Procedure", "Annual Maintenance Plan", "Airworthiness Maintenance Program"],
+            correct: 0,
+            info: "The AMP details the specific maintenance tasks and intervals for a specific aircraft."
+          },
+          {
+            q: "Which manual is used for repairing the aircraft skin or frame?",
+            options: ["System Repair Manual", "Structural Repair Manual (SRM)", "Standard Repair Methods", "Sheet-metal Repair Manual"],
+            correct: 1,
+            info: "The SRM contains approved data for repairing the aircraft's structure."
+          },
+          {
+            q: "What is an APU?",
+            options: ["Auxiliary Power Unit", "Aircraft Power Unit", "Automatic Power Utility", "Auxiliary Propulsion Unit"],
+            correct: 0,
+            info: "The APU is a small engine that provides electrical power and air while on the ground."
+          },
+          {
+            q: "An LRU is a component designed to be:",
+            options: ["Line Repairable Unit", "Long-Range Unit", "Line Replaceable Unit", "Lightweight Replacement Unit"],
+            correct: 2,
+            info: "An LRU can be quickly replaced on the flight line to return an aircraft to service."
+          },
+          {
+            q: "The MEL allows an aircraft to fly with certain faults; it stands for:",
+            options: ["Minimum Equipment List", "Maintenance Equipment List", "Master Equipment List", "Minimum Entry List"],
+            correct: 0,
+            info: "The MEL lists which items can be inoperative while still allowing the aircraft to fly safely."
+          },
+          {
+            q: "MLG refers to which part of the aircraft?",
+            options: ["Main Landing Gear", "Mid Landing Gear", "Maintenance Landing Gear", "Mechanical Lift Gear"],
+            correct: 0,
+            info: "MLG stands for the Main Landing Gear, usually located under the wings/fuselage."
+          },
+          {
+            q: "NLG refers to:",
+            options: ["Navigational Landing Gear", "Nose Landing Gear", "Node Level Gear", "Normal Landing Gear"],
+            correct: 1,
+            info: "The NLG is the landing gear located at the front (nose) of the aircraft."
+          },
+          {
+            q: "A torque wrench with a digital screen uses an:",
+            options: ["LED", "LCP", "LCD (Liquid Crystal Display)", "LCI"],
+            correct: 2,
+            info: "LCD screens are used on modern tooling for clear, digital readouts."
+          },
+          {
+            q: "Items left in an engine or cockpit that shouldn't be there are:",
+            options: ["Fixed Object Damage", "Foreign Object Debris (FOD)", "Flight Operational Danger", "Found Object Debris"],
+            correct: 1,
+            info: "FOD must be prevented to avoid damage to aircraft engines and systems."
+          },
+          {
+            q: "SOPM stands for:",
+            options: ["Standard Overhaul Practices Manual", "Standard Operational Procedures Manual", "System Overhaul Practices Manual", "Structural Overhaul Practices Manual"],
+            correct: 0,
+            info: "The SOPM contains general maintenance practices that apply across various components."
+          },
+          {
+            q: "To find a part number for a specific bolt, you would use the:",
+            options: ["Aircraft Illustrated Parts Catalogue (AIPC)", "Aircraft Internal Part Code", "Airframe Illustrated Parts Catalogue", "Aircraft Illustrated Product Catalogue"],
+            correct: 0,
+            info: "The AIPC provides diagrams and part numbers for every component on the aircraft."
+          }
+    ];
+
+
+let quizPool = [];
+    let currentIdx = 0;
+    let score = 0;
+    let currentCorrectIndex = null; // Track the new position of the correct answer
+
+    function initializeQuiz() {
+        // 1. Shuffle and pick 30 questions from the 220
+        let shuffled = [...allQuestions];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        quizPool = shuffled.slice(0, 30);
+        
+        currentIdx = 0;
+        score = 0;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        const qData = quizPool[currentIdx];
+        
+        // UI Updates
+        document.getElementById("current-num").innerText = currentIdx + 1;
+        document.getElementById("total-num").innerText = quizPool.length;
+        document.getElementById("q-text").innerText = qData.q;
+        document.getElementById("progress-fill").style.width = (currentIdx / quizPool.length * 100) + "%";
+        
+        // --- RANDOMIZE OPTIONS ---
+        // Create an array of indices [0, 1, 2]
+        let optionIndices = qData.options.map((_, index) => index);
+        
+        // Shuffle the indices
+        for (let i = optionIndices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [optionIndices[i], optionIndices[j]] = [optionIndices[j], optionIndices[i]];
+        }
+
+        const list = document.getElementById("options-list");
+        list.innerHTML = "";
+
+        // Re-map the options based on the shuffled indices
+        optionIndices.forEach((originalIndex, displayIndex) => {
+            // Check if this specific option was the original correct one
+            if (originalIndex === qData.correct) {
+                currentCorrectIndex = displayIndex; 
+            }
+
+            const div = document.createElement("div");
+            div.className = "option";
+            div.innerHTML = `
+                <input type="radio" name="answer" id="opt${displayIndex}" value="${displayIndex}">
+                <label for="opt${displayIndex}">${qData.options[originalIndex]}</label>
+            `;
+            div.onclick = () => { document.getElementById(`opt${displayIndex}`).checked = true; };
+            list.appendChild(div);
+        });
+
+        document.getElementById("feedback-area").style.display = "none";
+        document.getElementById("submit-btn").style.display = "block";
+        document.getElementById("next-btn").style.display = "none";
+    }
+
+    function checkAnswer() {
+        const selected = document.querySelector('input[name="answer"]:checked');
+        if (!selected) return alert("Select an answer!");
+
+        const userVal = parseInt(selected.value);
+        const qData = quizPool[currentIdx];
+        const feedback = document.getElementById("feedback-area");
+
+        // Compare user selection to our tracked currentCorrectIndex
+        if (userVal === currentCorrectIndex) {
+            score++;
+            feedback.className = "feedback correct-msg";
+            feedback.innerText = "CORRECT! " + qData.info;
+        } else {
+            feedback.className = "feedback wrong-msg";
+            // Show the text of the correct answer from the original data
+            feedback.innerText = "INCORRECT. The correct answer is: " + qData.options[qData.correct] + ". " + qData.info;
+        }
+
+        feedback.style.display = "block";
+        document.getElementById("submit-btn").style.display = "none";
+        document.getElementById("next-btn").style.display = "block";
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizPool.length) {
+            loadQuestion();
+        } else {
+            document.getElementById("quiz-ui").style.display = "none";
+            document.getElementById("final-score").style.display = "block";
+            document.getElementById("score-val").innerText = score;
+            document.getElementById("total-final").innerText = quizPool.length;
+        }
+    }
+
+    window.onload = initializeQuiz;
+</script>
+
+</body>
+</html>
