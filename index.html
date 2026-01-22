@@ -880,8 +880,74 @@
 
 { q: "How is the standby hydraulic reservoir pressurized?", options: ["Independently by bleed air", "By electric pump only", "By connection to system A reservoir", "By connection to system B reservoir"], correct: 3, info: "The standby reservoir is connected to the system B reservoir for pressurization and servicing." },
 
-{ q: "Why is pressurization of hydraulic reservoirs important?", options: ["To reduce system temperature", "To prevent fuel contamination", "To ensure positive fluid flow to hydraulic pumps", "To increase system pressure"], correct: 2, info: "Reservoir pressurization ensures positive fluid flow to all hydraulic pumps." },        
-        
+{ q: "Why is pressurization of hydraulic reservoirs important?", options: ["To reduce system temperature", "To prevent fuel contamination", "To ensure positive fluid flow to hydraulic pumps", "To increase system pressure"], correct: 2, info: "Reservoir pressurization ensures positive fluid flow to all hydraulic pumps." },
+{ q: "What is the primary purpose of the aircraft fire protection system?", options: ["To prevent fuel leaks", "To provide visual and aural indications of fire and overheat and provide extinguishing capability", "To isolate electrical systems during faults", "To cool engines during operation"], correct: 1, info: "The fire protection system provides detection, warning, and fire extinguishing capabilities for engines, APU, lavatories, and cargo compartments." },
+
+{ q: "Which aircraft area has fire detection but no fire extinguishing capability?", options: ["Engines", "APU compartment", "Cargo compartment", "Main landing gear wheel well"], correct: 3, info: "The main gear wheel well is equipped with fire detection only and does not have a fire extinguishing system." },
+
+{ q: "How many fire extinguishing bottles are provided for the engines?", options: ["One", "Two", "Three", "Four"], correct: 1, info: "There are two engine fire extinguishing bottles installed on the aircraft." },
+
+{ q: "Where are the engine fire extinguishing bottles located?", options: ["Nose wheel well", "Right main wheel well", "Left main wheel well", "Tail compartment"], correct: 2, info: "Both engine fire extinguishing bottles are located in the left main wheel well." },
+
+{ q: "How many fire extinguishing bottles are provided for the APU?", options: ["One", "Two", "Three", "None"], correct: 0, info: "A single fire extinguishing bottle is provided for APU fire protection." },
+
+{ q: "Where is the APU fire extinguishing bottle located on a Boeing 737?", options: ["Left main wheel well", "APU inlet compartment", "Horizontal stabilizer accessory compartment", "Electronic equipment bay"], correct: 2, info: "The APU fire extinguishing bottle is located in the horizontal stabilizer accessory compartment." },
+
+{ q: "What extinguishing agent is used in the APU fire extinguishing bottle?", options: ["Carbon dioxide", "Nitrogen", "Halon", "Dry chemical powder"], correct: 2, info: "The APU fire extinguishing system uses halon to flood the APU compartment and extinguish a fire." },
+
+{ q: "How can the engine fire extinguishing bottles be discharged?", options: ["Each bottle can only discharge to one engine", "Only one bottle can be used per engine", "Either or both bottles can be discharged into either engine", "Both bottles must always discharge together"], correct: 2, info: "Either or both engine fire extinguishing bottles can be discharged into either engine." },
+
+{ q: "Which power source supplies the APU fire detection system?", options: ["AC transfer bus", "DC ground service bus", "Battery bus", "Standby power system"], correct: 2, info: "The APU fire detection system is powered by the battery bus." },
+
+{ q: "Which power source supplies the APU fire extinguishing system?", options: ["Main AC bus", "Standby hydraulic system", "Hot battery bus", "External ground power"], correct: 2, info: "The APU fire extinguishing system is powered by the hot battery bus, ensuring availability even during power loss." },
+
+{ q: "What type of fire protection is installed in the main wheel well on the Boeing 737?", options: ["Fire detection and extinguishing", "Fire extinguishing only", "Fire detection only", "No fire protection"], correct: 2, info: "The main wheel well is equipped with a fire detection system only and has no fire extinguishing capability." },
+
+{ q: "Which power source supplies the main wheel well fire detection system?", options: ["Battery bus", "No. 1 AC transfer bus", "No. 2 AC transfer bus", "Standby power system"], correct: 2, info: "Main wheel well fire detection is powered by the No. 2 AC transfer bus." },
+
+{ q: "How many fire detector loops are installed in the main wheel well?", options: ["Two detector loops", "Three detector loops", "One detector loop", "One detector loop per gear leg"], correct: 2, info: "A single fire detector loop is installed in the main wheel well." },
+
+{ q: "What condition causes the wheel well fire detector to sense a fire?", options: ["Smoke presence", "Pressure change", "Temperature reaching a predetermined limit", "Loss of hydraulic fluid"], correct: 2, info: "The detector senses a fire when its temperature increases to a predetermined limit." },
+
+{ q: "What happens to the WHEEL WELL fire warning light once illuminated?", options: ["It extinguishes automatically after 10 seconds", "It remains illuminated until reset by the crew", "It remains illuminated until the detector temperature drops below the onset value", "It flashes continuously"], correct: 2, info: "The WHEEL WELL fire warning light remains illuminated until the detector temperature decreases below the onset temperature." },
+
+{ q: "Which indications occur when a main wheel well fire is detected?", options: ["Only the WHEEL WELL light illuminates", "Master caution lights illuminate only", "Fire warning bell sounds, both master FIRE WARN lights illuminate, and the WHEEL WELL light illuminates", "Only an ECAM/EICAS message appears"], correct: 2, info: "A wheel well fire triggers the fire warning bell, illuminates both master FIRE WARN lights, and illuminates the WHEEL WELL warning light." },
+
+{ q: "Does the nose wheel well have a fire detection system installed?", options: ["Yes, detection only", "Yes, detection and extinguishing", "No, it has no fire detection system", "Only during ground operations"], correct: 2, info: "The nose wheel well does not have a fire detection system installed." },
+
+{ q: "Which power sources supply the cargo compartment smoke detection system on the Boeing 737?", options: ["Battery bus only", "Hot battery bus", "DC bus 1 and DC bus 2", "AC transfer buses"], correct: 2, info: "Cargo compartment smoke detection is powered by DC bus 1 and DC bus 2 to ensure redundancy." },
+
+{ q: "What power source supplies the cargo compartment fire extinguishing system?", options: ["DC bus 1", "DC bus 2", "AC transfer bus", "Hot battery bus"], correct: 3, info: "The cargo compartment fire extinguishing system is powered by the hot battery bus to ensure availability during electrical failures." },
+
+{ q: "How is smoke normally detected in the forward and aft cargo compartments?", options: ["Single detector per compartment", "Dual-loop detection requiring both loops to sense smoke", "Heat detection only", "Crew visual inspection"], correct: 1, info: "Each cargo compartment uses a dual-loop smoke detection system, and normally both loops must sense smoke to trigger an alert." },
+
+{ q: "What happens if one smoke detector loop fails in a cargo compartment?", options: ["Smoke detection is lost completely", "The system automatically shuts down", "The system converts to single-loop detection", "Fire extinguishing activates automatically"], correct: 2, info: "If one loop fails or loses power, the system automatically converts to single-loop detection to maintain protection." },
+
+{ q: "How can the cargo smoke detection system be manually converted to single-loop operation?", options: ["By cycling electrical power", "By pulling a circuit breaker", "By using the DETECT SELECT switch on the cargo fire control panel", "By activating the fire extinguisher"], correct: 2, info: "The DETECT SELECT switch allows manual conversion to single-loop detection in the event of a detector failure." },
+
+{ q: "Which indications occur when a cargo compartment fire is detected?", options: ["Master caution only", "Only the cargo fire warning light illuminates", "Fire warning bell sounds, both master FIRE WARN lights illuminate, and the FWD/AFT cargo fire warning light illuminates", "Only an EICAS message appears"], correct: 2, info: "A cargo fire triggers the fire warning bell, illuminates both master FIRE WARN lights, and the respective forward or aft cargo fire warning light." },
+
+{ q: "How many smoke detectors are installed in the forward cargo compartment?", options: ["2 detectors", "4 detectors", "6 detectors", "8 detectors"], correct: 1, info: "The forward cargo compartment contains four smoke detectors arranged in two detection loops." },
+
+{ q: "How many smoke detectors are installed in the aft cargo compartment?", options: ["4 detectors", "5 detectors", "6 detectors", "8 detectors"], correct: 2, info: "The aft cargo compartment contains six smoke detectors arranged across dual detection loops." },        
+
+{ q: "Is there a fire extinguishing system installed in the main wheel well?", options: ["Yes, automatic", "Yes, manual only", "Yes, shared with engines", "No, extinguishing is not provided"], correct: 3, info: "The main wheel well has no fire extinguishing system; only fire detection is provided." },  
+
+{ q: "Which electrical power sources supply the cargo compartment smoke detection system on the Boeing 737?", options: ["AC transfer bus only", "Battery bus only", "DC bus 1 and DC bus 2", "Hot battery bus only"], correct: 2, info: "The cargo compartment smoke detection system is powered by DC bus 1 and DC bus 2 to provide redundancy." },
+
+{ q: "Which power source supplies the cargo compartment fire extinguishing system?", options: ["DC bus 1", "DC bus 2", "AC transfer bus", "Hot battery bus"], correct: 3, info: "Cargo compartment fire extinguishing is powered by the hot battery bus to ensure operation during electrical failures." },
+
+{ q: "How is smoke normally detected in the forward and aft cargo compartments?", options: ["Single-loop detection", "Dual-loop detection requiring both loops to sense smoke", "Heat detection only", "Crew visual confirmation"], correct: 1, info: "Both forward and aft cargo compartments use dual-loop smoke detection, and normally both loops must sense smoke to trigger an alert." },
+
+{ q: "What occurs if one smoke detection loop loses power or fails?", options: ["Smoke detection is lost", "Fire extinguishing activates automatically", "The system converts to single-loop detection", "The system shuts down"], correct: 2, info: "If one loop fails or loses power, the system automatically converts to single-loop detection to maintain protection." },
+
+{ q: "How can maintenance manually select single-loop smoke detection?", options: ["By cycling the battery switch", "By pulling a circuit breaker", "By using the DETECT SELECT switch on the cargo fire control panel", "By arming the fire extinguisher"], correct: 2, info: "The DETECT SELECT switch allows manual conversion to single-loop detection following a detector failure." },
+
+{ q: "What are the indications of a cargo compartment fire?", options: ["Master caution only", "Only the cargo fire warning light illuminates", "Fire warning bell sounds, both master FIRE WARN lights illuminate, and the FWD/AFT cargo fire warning light illuminates", "An EICAS advisory only"], correct: 2, info: "A cargo fire triggers the fire warning bell, both master FIRE WARN lights, and the respective forward or aft cargo fire warning light." },
+
+{ q: "How many smoke detectors are installed in the forward cargo compartment?", options: ["2 detectors", "4 detectors", "6 detectors", "8 detectors"], correct: 1, info: "The forward cargo compartment is equipped with four smoke detectors arranged in two detection loops." },
+
+{ q: "How many smoke detectors are installed in the aft cargo compartment?", options: ["4 detectors", "5 detectors", "6 detectors", "8 detectors"], correct: 2, info: "The aft cargo compartment contains six smoke detectors arranged across dual detection loops." },
 
 {q: "Which method is described as the safest approach to communication during towing?", options: ["Visual only", "Verbal only", "A combination of verbal and visual communication", "Written messages only"], correct: 2, info: "A combination of verbal (radios) and visual (marshalling/body signals) communication is stated as safest."}];
 
