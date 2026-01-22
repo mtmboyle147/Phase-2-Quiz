@@ -722,7 +722,52 @@
 
 { q: "What condition is the Ground Proximity Warning System (GPWS) designed to prevent?", options: ["Mid-air collisions", "Runway overruns", "Controlled Flight Into Terrain (CFIT)", "Cabin depressurization"], correct: 2, info: "GPWS provides warnings to prevent Controlled Flight Into Terrain accidents." },
 
-{ q: "What is the primary function of GPS in the Boeing 737?", options: ["Voice communication", "Weather detection", "Providing accurate aircraft position data", "Traffic separation"], correct: 2, info: "GPS provides precise position data to the FMC and flight crew as part of the navigation system." },        
+{ q: "What is the primary function of GPS in the Boeing 737?", options: ["Voice communication", "Weather detection", "Providing accurate aircraft position data", "Traffic separation"], correct: 2, info: "GPS provides precise position data to the FMC and flight crew as part of the navigation system." },
+{ q: "What is the primary purpose of the Boeing automatic flight (autoflight) system?", options: ["To replace pilots completely during flight", "To automatically maintain altitude, heading, and airspeed while reducing pilot workload", "To provide navigation charts to the crew", "To control aircraft electrical systems"], correct: 1, info: "The autoflight system maintains altitude, heading, and airspeed automatically, significantly reducing pilot workload." },
+
+{ q: "Which autoflight system component directly moves the aircraft flight controls?", options: ["Flight Director", "Autothrottle", "Autopilot", "Flight Management Computer"], correct: 2, info: "The autopilot directly controls the flight controls such as the control column, wheel, and rudder pedals." },
+
+{ q: "What is the primary function of the Flight Director (FD)?", options: ["To physically control the aircraft", "To adjust engine thrust automatically", "To provide visual guidance cues on the PFD", "To store flight plan data"], correct: 2, info: "The Flight Director provides visual guidance cues on the Primary Flight Display to indicate the desired flight path." },
+
+{ q: "What does the Autothrottle (A/T) system control?", options: ["Flight control surfaces", "Aircraft heading", "Engine thrust to maintain selected airspeed", "Yaw damping"], correct: 2, info: "The autothrottle automatically adjusts engine thrust to maintain the desired airspeed." },
+
+{ q: "Through which interface do pilots primarily control the automatic flight system?", options: ["Flight Management Computer", "Primary Flight Display", "Mode Control Panel", "Control Display Unit"], correct: 2, info: "Pilots interact with the automatic flight system using the Mode Control Panel (MCP)." },
+
+{ q: "What is the main function of the Flight Management Computer (FMC)?", options: ["To display flight modes", "To calculate and store flight plan data for autopilot use", "To control thrust levers", "To provide attitude information"], correct: 1, info: "The FMC calculates and stores flight plan data such as waypoints, altitudes, and speeds." },
+
+{ q: "How can pilots regain manual control from the autoflight system?", options: ["By selecting a different MCP mode", "By overriding or disengaging the autopilot", "By turning off the FMC", "By reducing engine thrust"], correct: 1, info: "Pilots can disengage the autopilot at any time to take manual control of the aircraft." },
+
+{ q: "What best describes Dutch roll?", options: ["A steady climb with yaw input", "A continuous combination of rolling and yawing motion", "A stall recovery maneuver", "A high-speed descent oscillation"], correct: 1, info: "Dutch roll is characterized by coupled rolling and yawing oscillations." },
+
+{ q: "Which system is primarily used to counteract Dutch roll?", options: ["Autothrottle", "Yaw damper", "Flight Director", "Spoilers"], correct: 1, info: "Yaw dampers counteract Dutch roll by automatically applying rudder inputs." },
+
+{ q: "What is the purpose of the yaw damper?", options: ["To assist with turning the aircraft", "To reduce roll rate during turbulence", "To counteract yaw and improve stability", "To control pitch oscillations"], correct: 2, info: "Yaw dampers use rudder inputs to counteract yaw and increase aircraft stability." },
+
+{ q: "What is the Boeing term for the autopilot control panel?", options: ["CDU", "FMA", "MCP", "PFD"], correct: 2, info: "The Mode Control Panel (MCP) is the autopilot control panel in Boeing aircraft." },
+
+{ q: "Which functions are controlled by the MCP knobs?", options: ["Fuel flow and engine start", "Speed, heading, vertical speed, and altitude", "Navigation database and route planning", "Flight control surface limits"], correct: 1, info: "The MCP knobs control speed, heading, vertical speed, and altitude selections." },
+
+{ q: "What is the primary role of the Flight Mode Annunciator (FMA)?", options: ["To show navigation charts", "To indicate current and armed autoflight modes", "To display weather radar", "To provide engine indications"], correct: 1, info: "The FMA shows active and armed autoflight modes and is the most important reference when using the autopilot." },
+
+{ q: "How many main columns is the FMA divided into?", options: ["Two", "Three", "Four", "Five"], correct: 1, info: "The FMA is divided into three columns: autothrottle, lateral mode, and vertical/approach mode." },
+
+{ q: "What visual cues does the Flight Director provide?", options: ["Green pitch ladders", "Magenta horizontal and vertical bars", "Amber warning flags", "White navigation symbols"], correct: 1, info: "The Flight Director is displayed as magenta horizontal and vertical bars on the PFD." },
+
+{ q: "What does upward movement of the horizontal flight director bar indicate?", options: ["Reduce airspeed", "Pitch up", "Bank left", "Descend"], correct: 1, info: "When the horizontal FD bar moves up, the pilot should pitch up to capture the target pitch attitude." },
+
+{ q: "What happens if both Flight Directors and the autopilot are switched off?", options: ["The aircraft enters direct law", "The autoflight system resets and turns off", "The FMC takes full control", "The autothrottle engages automatically"], correct: 1, info: "With both Flight Directors and the autopilot off, the autoflight system is fully turned off and reset." },
+
+{ q: "Which condition must be met before engaging the autopilot?", options: ["Aircraft must be on the ground", "Bank angle less than 45 degrees", "Flaps must be fully retracted", "Autothrottle must be disengaged"], correct: 1, info: "The autopilot can only engage if pitch and bank angles are within specified limits, including bank angle less than 45 degrees." },
+
+{ q: "At what minimum height can the autopilot typically be engaged after takeoff?", options: ["50 feet", "100 feet", "200 feet", "400 feet"], correct: 1, info: "After takeoff, the autopilot can be engaged once the aircraft is at least 100 feet above the ground." },
+
+{ q: "How does the Autothrottle system physically control thrust?", options: ["By adjusting fuel valves", "By driving servos on the thrust levers", "By changing engine pitch settings", "By modifying flight director commands"], correct: 1, info: "The Autothrottle uses servos to physically move the thrust levers." },
+
+{ q: "What happens to the autothrottle during landing?", options: ["It remains engaged after touchdown", "It increases thrust during flare", "It reduces thrust to idle during flare and disengages with reversers", "It disengages at 1,000 feet"], correct: 2, info: "During landing, the autothrottle retards thrust to idle during flare and disengages when reversers are selected." },
+
+{ q: "What is the primary role of the Flight Management System (FMS)?", options: ["Directly control flight surfaces", "Store flight plans and compute optimal flight profiles", "Monitor engine health", "Provide radio communications"], correct: 1, info: "The FMS manages route planning, performance calculations, and economical flight profiles." },
+
+{ q: "How do pilots typically interact with the Flight Management System?", options: ["Using the MCP only", "Through the CDU or MFD", "Via the PFD controls", "Using overhead panel switches"], correct: 1, info: "Pilots interact with the FMS using a Control Display Unit (CDU) or Multi-Function Display (MFD)." },
 {q: "Which method is described as the safest approach to communication during towing?", options: ["Visual only", "Verbal only", "A combination of verbal and visual communication", "Written messages only"], correct: 2, info: "A combination of verbal (radios) and visual (marshalling/body signals) communication is stated as safest."}];
 
 
